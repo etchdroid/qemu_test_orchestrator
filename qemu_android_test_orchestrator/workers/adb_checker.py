@@ -19,7 +19,7 @@ class AdbConnectionChecker(WorkerFSM):
                 line = await proc.stdout.readline()
                 if not line:
                     break
-                if line.strip().startswith(b'emulator-'):
+                if line.strip().startswith(b'emulator-') and not line.strip().endswith(b"offline"):
                     return
                 
             # Restart adb every 3 attempts

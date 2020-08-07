@@ -42,8 +42,6 @@ def main() -> None:
     loop = asyncio.get_event_loop()
 
     print("Running with enabled worker:", ', '.join(map(lambda x: f"'{x.name}'", workers)))
-    if not os.isatty(sys.stdout.fileno()):
-        print("Progress is reported as workers finish processing")
 
     try:
         for state in transitions:

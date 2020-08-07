@@ -107,21 +107,10 @@ class ManagerFSM(AbstractFSM):
 
         def print_progress_update(task: asyncio.Task = None, result: Optional[TransitionResult] = None) -> None:
             longest_name_len = max(map(len, coro_names)) + 1
-
-            if not os.isatty(sys.stdout.fileno()):
-                if not task:
-                    return
-                name = coro_names[task.index]
-                print(f"{(name + ':').ljust(longest_name_len)} {pretty_result(result)}")
+            if not task:
                 return
-
-            if task:
-                # Move cursor up to the beginning of previous progress report
-                print("\033[F" * (len(coro_names) + 1), end='')
-
-            for index, name, result in sorted(
-                    zip(range(len(self.__workers)), coro_names, coro_results), key=lambda x: x[1]):
-                print(f"{(name + ':').ljust(longest_name_len)} {pretty_result(result)}            ")
+            name = coro_names[task.index]
+            print(f"{(name + ':').ljust(longest_name_len)} {pretty_result(result)}")
 
         def register_result(task: asyncio.Task, result: Union[TransitionResult, Exception]) -> None:
             coro_results[task.index] = result
