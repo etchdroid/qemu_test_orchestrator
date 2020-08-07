@@ -46,8 +46,11 @@ class PermissionDialogChecker(WorkerFSM):
         elif state == State.STOP:
             ret = TransitionResult.NOOP
             if self.shared_state.adb_proc and self.shared_state.adb_proc.returncode is None:
-                self.shared_state.adb_proc.kill()
-                ret = TransitionResult.DONE
+                try:
+                    self.shared_state.adb_proc.kill()
+                    ret = TransitionResult.DONE
+                except ProcessLookupError:
+                    pass
             if self.ensure_coro:
                 self.ensure_coro.cancel()
                 ret = TransitionResult.DONE

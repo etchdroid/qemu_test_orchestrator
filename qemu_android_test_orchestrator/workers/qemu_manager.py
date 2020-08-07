@@ -28,7 +28,10 @@ class QemuSystemManager(WorkerFSM):
         self.shared_state.qemu_proc.terminate()
         await asyncio.sleep(0.2)
         if self.shared_state.qemu_proc.returncode is None:
-            self.shared_state.qemu_proc.kill()
+            try:
+                self.shared_state.qemu_proc.kill()
+            except ProcessLookupError:
+                pass
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.QEMU_UP:

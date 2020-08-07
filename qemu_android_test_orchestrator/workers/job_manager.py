@@ -23,8 +23,11 @@ class JobManager(WorkerFSM):
             await self.run_job()
             return TransitionResult.DONE
         elif state == State.STOP and self.shared_state.job_proc:
-            self.shared_state.job_proc.kill()
-            return TransitionResult.DONE
+            try:
+                self.shared_state.job_proc.kill()
+                return TransitionResult.DONE
+            except ProcessLookupError:
+                pass
         return TransitionResult.NOOP
 
     async def exit_state(self, state: State) -> TransitionResult:
