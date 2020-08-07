@@ -34,9 +34,10 @@ class VirtWifiManager(WorkerFSM):
         for i in range(0, len(apk_b64), chunk_size):
             qemu_proc.stdin.write(apk_b64[i:i+chunk_size] + b'\n')
             await qemu_proc.stdin.drain()
+        await asyncio.sleep(0.5)
         qemu_proc.stdin.write(b'EOF\n')
         await qemu_proc.stdin.drain()
-        await asyncio.sleep(1)
+        await asyncio.sleep(3)
 
         # Install app
         qemu_proc.stdin.write(b'pm install /data/local/tmp/app.apk\n')
@@ -51,10 +52,10 @@ class VirtWifiManager(WorkerFSM):
         qemu_proc.stdin.write(b'am start-activity -a android.intent.action.MAIN -n '
                               b'eu.depau.virtwificonnector/.MainActivity\n')
         await qemu_proc.stdin.drain()
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
 
         # Dismiss "old API" warning
-        qemu_proc.stdin.write(b'input keyboard keyevent KEYCODE_ESC\n')
+        qemu_proc.stdin.write(b'input keyboard keyevent KEYCODE_ESCAPE\n')
         await qemu_proc.stdin.drain()
         await asyncio.sleep(0.5)
 

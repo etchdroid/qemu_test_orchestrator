@@ -13,7 +13,7 @@ class PermissionDialogChecker(WorkerFSM):
     async def keypress(self, key: str) -> None:
         proc = await asyncio.create_subprocess_exec('adb', 'shell', 'input', 'keyboard', 'keyevent', 'KEYCODE_' + key)
         await proc.wait()
-        await asyncio.sleep(0.3)
+        await asyncio.sleep(1)
 
     async def approve_permission(self) -> None:
         # /me *shrugs*
@@ -31,7 +31,10 @@ class PermissionDialogChecker(WorkerFSM):
             if b'USB-PERMISSION' in line:
                 if b'USB-PERMISSION-REQUESTED' in line:
                     await self.approve_permission()
-                self.shared_state.adb_proc.kill()
+                try:
+                    self.shared_state.adb_proc.kill()
+                except ProcessLookupError:
+                    pass
                 return
             line = await self.shared_state.adb_proc.stdout.readline()
 
