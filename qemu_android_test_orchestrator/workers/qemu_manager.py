@@ -10,11 +10,12 @@ class QemuSystemManager(WorkerFSM):
 
     async def ensure_qemu(self) -> None:
         assert self.shared_state.config
+        stdout = asyncio.subprocess.DEVNULL if not self.shared_state.config['qemu_debug'] else None
         self.shared_state.qemu_proc = await asyncio.create_subprocess_exec(
             self.shared_state.config['qemu_bin'],
             *self.shared_state.config['qemu_args'],
             cwd=self.shared_state.config['qemu_workdir'],
-            stdin=asyncio.subprocess.PIPE #, stdout=asyncio.subprocess.PIPE
+            stdin=asyncio.subprocess.PIPE, stdout=stdout
         )
         # I could implement a little checker that runs stuff over serial to see if Android is fully up but it's too
         # much effort for now, this should work for the time being

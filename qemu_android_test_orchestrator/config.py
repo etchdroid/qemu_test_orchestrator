@@ -13,6 +13,7 @@ _default_cfg = {
     'permission_approve': True,
     'qemu_workdir': None,
     'qemu_bin': f'qemu-system-{os.uname().machine}',
+    'qemu_debug': False,
     'qemu_args': [
         # CPU
         '-enable-kvm', '-smp', '2', '-cpu', 'host',
@@ -64,6 +65,7 @@ _environ_cfg: Dict[str, Tuple[str, Callable]] = {
     'permission_approve': ('PERMISSION_APPROVE', env_bool),
     'qemu_workdir': ('QEMU_WORKDIR', noop),
     'qemu_bin': ('QEMU_BIN', noop),
+    'qemu_debug': ('QEMU_DEBUG', env_bool),
 }
 
 
