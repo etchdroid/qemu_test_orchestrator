@@ -39,7 +39,7 @@ _default_cfg = {
         # Drives and disk images
         '-drive', 'index=0,if=virtio,id=system,file=system.sfs,format=raw,readonly',
         '-drive', 'index=1,if=virtio,id=ramdisk,file=ramdisk.img,format=raw,readonly',
-        '-drive', 'if=none,id=usbstick,file=usb.qcow2,format=qcow2',
+        '-drive', 'if=none,id=usbstick,file=usb.img,format=raw',
 
         # USB devices
         '-usb',
