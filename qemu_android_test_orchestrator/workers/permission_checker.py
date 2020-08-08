@@ -17,9 +17,9 @@ class PermissionDialogChecker(WorkerFSM):
 
     async def approve_permission(self) -> None:
         # /me *shrugs*
-        await self.keypress('DPAD_RIGHT')
-        await self.keypress('DPAD_RIGHT')
-        await self.keypress('ENTER')
+        assert self.shared_state.config
+        for key in self.shared_state.config['permission_approve_buttons']:
+            await self.keypress(key)
 
     async def ensure_perms_approved(self) -> None:
         self.shared_state.adb_proc = await asyncio.create_subprocess_exec('adb', 'logcat',

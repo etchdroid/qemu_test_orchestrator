@@ -11,6 +11,7 @@ _default_cfg = {
     'virtwifi_hack': True,
     'virtwificonnector_apk': 'virtwificonnector-debug.apk',
     'permission_approve': True,
+    'permission_approve_buttons': ['DPAD_RIGHT', 'DPAD_RIGHT', 'ENTER'],
     'qemu_workdir': None,
     'qemu_bin': f'qemu-system-{os.uname().machine}',
     'qemu_debug': False,
@@ -33,7 +34,7 @@ _default_cfg = {
         '-device', 'virtio-net-pci,netdev=network',
         '-serial', 'mon:stdio',
         '-vga', 'qxl',
-        #'-display', 'gtk,gl=on',
+        # '-display', 'gtk,gl=on',
 
         # Drives and disk images
         '-drive', 'index=0,if=virtio,id=system,file=system.sfs,format=raw,readonly',
@@ -55,6 +56,10 @@ def noop(a: T) -> T:
 
 def env_bool(val: str) -> bool:
     return bool(int(val))
+
+
+def space_separated_values(val: str) -> list:
+    return val.split(' ')
 
 
 _environ_cfg: Dict[str, Tuple[str, Callable]] = {
