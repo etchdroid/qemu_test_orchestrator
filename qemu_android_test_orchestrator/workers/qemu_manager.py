@@ -26,7 +26,10 @@ class QemuSystemManager(WorkerFSM):
             return
         # Wait one second before killing QEMU to give time to the other workers to terminate gracefully
         await asyncio.sleep(1)
-        self.shared_state.qemu_proc.terminate()
+        try:
+            self.shared_state.qemu_proc.terminate()
+        except ProcessLookupError:
+            return
         await asyncio.sleep(0.2)
         if self.shared_state.qemu_proc.returncode is None:
             try:
