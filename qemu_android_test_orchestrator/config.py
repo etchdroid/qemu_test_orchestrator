@@ -35,6 +35,7 @@ _default_cfg = {
         '-serial', 'mon:stdio',
         '-vga', 'qxl',
         # '-display', 'gtk,gl=on',
+        '-nographic',
 
         # Drives and disk images
         '-drive', 'index=0,if=virtio,id=system,file=system.sfs,format=raw,readonly',
