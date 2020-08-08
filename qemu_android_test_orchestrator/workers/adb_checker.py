@@ -1,4 +1,5 @@
 import asyncio
+import warnings
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
 
@@ -31,10 +32,23 @@ class AdbConnectionChecker(WorkerFSM):
             count += 1
 
         raise TimeoutError("Timed out waiting for adb to show up")
+    
+    async def run_oneshot(self, *cmd):
+        proc = await asyncio.create_subprocess_exec(*cmd)
+        await proc.wait()
+    
+    async def kill_package_verifier(self):
+        try:
+            await self.run_oneshot('adb', 'shell', 'settings', 'put', 'global', 'package_verifier_enable', '0')
+            await self.run_oneshot('adb', 'shell', 'settings', 'put', 'secure', 'package_verifier_enable', '0')
+            await self.run_oneshot('adb', 'shell', 'settings', 'put', 'system', 'package_verifier_enable', '0')
+        except Exception:
+            warnings.warn('Unable to kill Google package verifier, app installation may be blocked later on')
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.ADB_UP:
             await asyncio.wait_for(self.ensure_adb(), 60)
+            await asyncio.wait_for(self.kill_package_verifier(), 15)
             return TransitionResult.DONE
         return TransitionResult.NOOP
 
