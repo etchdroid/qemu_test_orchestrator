@@ -49,7 +49,7 @@ class VirtWifiManager(WorkerFSM):
         await qemu_proc.stdin.drain()
 
         # Open app
-        qemu_proc.stdin.write(b'am start-activity -a android.intent.action.MAIN -n '
+        qemu_proc.stdin.write(b'am start -a android.intent.action.MAIN -n '
                               b'eu.depau.virtwificonnector/.MainActivity\n')
         await qemu_proc.stdin.drain()
         await asyncio.sleep(2)
