@@ -30,7 +30,9 @@ class PermissionDialogChecker(WorkerFSM):
         while line:
             if b'USB-PERMISSION' in line:
                 if b'USB-PERMISSION-REQUESTED' in line:
+                    await asyncio.sleep(2)
                     await self.approve_permission()
+                # Approve perms only once
                 try:
                     self.shared_state.adb_proc.kill()
                 except ProcessLookupError:
