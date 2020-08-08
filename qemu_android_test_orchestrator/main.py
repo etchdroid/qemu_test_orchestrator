@@ -5,6 +5,7 @@ import sys
 from qemu_android_test_orchestrator.config import get_config
 from qemu_android_test_orchestrator.fsm import State, ManagerFSM
 from qemu_android_test_orchestrator.shared_state import SynchronizedObject
+from qemu_android_test_orchestrator.utils import Color
 from qemu_android_test_orchestrator.workers.adb_checker import AdbConnectionChecker
 from qemu_android_test_orchestrator.workers.job_manager import JobManager
 from qemu_android_test_orchestrator.workers.virtwifi_manager import VirtWifiManager
@@ -47,6 +48,6 @@ def main() -> None:
         for state in transitions:
             loop.run_until_complete(fsm.transition(state))
     except (KeyboardInterrupt, EOFError):
-        print("Shutting down")
+        print(Color.RED + "Shutting down" + Color.RESET)
     finally:
         loop.run_until_complete(fsm.transition(State.STOP))

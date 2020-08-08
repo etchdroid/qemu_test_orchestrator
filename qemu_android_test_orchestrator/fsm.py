@@ -2,15 +2,13 @@
 
 import abc
 import asyncio
-import os
-import string
-import sys
 from enum import Enum, auto
 from typing import Optional, Dict, Sequence, List, Union
 
 import paco  # type: ignore
 
 from qemu_android_test_orchestrator.shared_state import SynchronizedObject
+from qemu_android_test_orchestrator.utils import Color
 
 
 class State(Enum):
@@ -96,13 +94,13 @@ class ManagerFSM(AbstractFSM):
 
         def pretty_result(result: Union[TransitionResult, Exception, None]) -> str:
             result_names = {
-                TransitionResult.DONE: "Action performed",
-                TransitionResult.NOOP: "Ok",
+                TransitionResult.DONE: Color.YELLOW + "Action performed" + Color.RESET,
+                TransitionResult.NOOP: Color.GREEN + "Ok" + Color.RESET,
                 None: "Pending"
             }
 
             if isinstance(result, Exception):
-                return "ERROR! Shutting down"
+                return Color.RED + "ERROR! Shutting down" + Color.RESET
             return result_names[result]
 
         def print_progress_update(task: asyncio.Task = None, result: Optional[TransitionResult] = None) -> None:
@@ -110,17 +108,17 @@ class ManagerFSM(AbstractFSM):
             if not task:
                 return
             name = coro_names[task.index]
-            print(f"{(name + ':').ljust(longest_name_len)} {pretty_result(result)}")
+            print(f"{Color.CYAN}{(name + ':').ljust(longest_name_len)}{Color.RESET} {pretty_result(result)}")
 
         def register_result(task: asyncio.Task, result: Union[TransitionResult, Exception]) -> None:
             coro_results[task.index] = result
             print_progress_update(task, result)
 
         message = f"Current state is {self.cur_state}, next step: {wanted_state}"
-        print('-' * len(message))
+        print(Color.BROWN + ('-' * len(message)))
         print(message)
         print("Trying to reach next state, waiting for worker rendezvous")
-        print('-' * len(message))
+        print(('-' * len(message)) + Color.RESET)
         print_progress_update()
 
         try:
@@ -179,6 +177,6 @@ class WorkerFSM(AbstractFSM):
             self._cur_state = wanted_state
             return \
                 TransitionResult.DONE if TransitionResult.DONE in (exit_result, enter_result) else \
-                TransitionResult.NOOP
+                    TransitionResult.NOOP
         finally:
             self._wanted_state = None
