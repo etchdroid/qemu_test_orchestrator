@@ -11,7 +11,7 @@ class PermissionDialogChecker(WorkerFSM):
         return 'Permission approver'
 
     async def keypress(self, key: str) -> None:
-        proc = await asyncio.create_subprocess_exec('adb', 'shell', 'input', 'keyboard', 'keyevent', 'KEYCODE_' + key)
+        proc = await asyncio.create_subprocess_exec('adb', 'shell', 'input', 'keyevent', 'KEYCODE_' + key)
         await proc.wait()
         await asyncio.sleep(1)
 

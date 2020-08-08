@@ -55,7 +55,7 @@ class VirtWifiManager(WorkerFSM):
         await asyncio.sleep(2)
 
         # Dismiss "old API" warning
-        qemu_proc.stdin.write(b'input keyboard keyevent KEYCODE_ESCAPE\n')
+        qemu_proc.stdin.write(b'input keyevent KEYCODE_ESCAPE\n')
         await qemu_proc.stdin.drain()
         await asyncio.sleep(0.5)
 
