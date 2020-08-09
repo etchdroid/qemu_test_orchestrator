@@ -11,7 +11,8 @@ class VncRecorder(WorkerFSM):
         return 'VNC recorder'
 
     async def ensure_vnc_recorder(self) -> None:
-        await asyncio.sleep(1)  # Wait a second for QEMU to start
+        await asyncio.sleep(10)  # Wait 10 seconds until the Android VM has performed modesetting
+
         recorder_bin = self.shared_state.config['vnc_recorder_bin'] or 'vnc_recorder'
         self.shared_state.vnc_recorder_proc = \
             await asyncio.create_subprocess_exec(
