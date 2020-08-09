@@ -23,7 +23,7 @@ class VncRecorder(WorkerFSM):
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.QEMU_UP:
-            await asyncio.wait_for(self.ensure_vnc_recorder(), 10)
+            await asyncio.wait_for(self.ensure_vnc_recorder(), 20)
             return TransitionResult.DONE
         elif state == State.STOP:
             if self.shared_state.vnc_recorder_proc and self.shared_state.vnc_recorder_proc.returncode is None:
