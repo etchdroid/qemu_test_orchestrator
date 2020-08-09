@@ -29,7 +29,7 @@ _default_cfg = {
         '-initrd', 'initrd.img',
 
         # Generic hardware
-        '-soundhw', 'ac97',
+        '-soundhw', 'ac97', '-audiodev', 'none',
         '-netdev', 'user,id=network,hostfwd=tcp::5555-:5555',
         '-device', 'virtio-net-pci,netdev=network',
         '-serial', 'mon:stdio',
