@@ -13,12 +13,12 @@ class VncRecorder(WorkerFSM):
     async def ensure_vnc_recorder(self) -> None:
         await asyncio.sleep(10)  # Wait 10 seconds until the Android VM has performed modesetting
 
+        stderr = asyncio.subprocess.DEVNULL if not self.shared_state.config['vnc_recorder_debug'] else None
         recorder_bin = self.shared_state.config['vnc_recorder_bin'] or 'vnc_recorder'
         self.shared_state.vnc_recorder_proc = \
             await asyncio.create_subprocess_exec(
                 recorder_bin, '--password', '', '--port', str(self.shared_state.config['vnc_recorder_port']),
-                '--outfile', self.shared_state.config['vnc_recorder_output'],
-                stderr=asyncio.subprocess.DEVNULL
+                '--outfile', self.shared_state.config['vnc_recorder_output'], stderr=stderr
             )
 
     async def enter_state(self, state: State) -> TransitionResult:
