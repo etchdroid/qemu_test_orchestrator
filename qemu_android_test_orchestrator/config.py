@@ -34,8 +34,7 @@ _default_cfg = {
         '-device', 'virtio-net-pci,netdev=network',
         '-serial', 'mon:stdio',
         '-vga', 'qxl',
-        # '-display', 'gtk,gl=on',
-        '-nographic',
+        '-display', 'vnc=127.0.0.1:10',
 
         # Drives and disk images
         '-drive', 'index=0,if=virtio,id=system,file=system.sfs,format=raw,readonly',
