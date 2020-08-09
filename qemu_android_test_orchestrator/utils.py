@@ -1,3 +1,31 @@
+import asyncio
+import os
+import shutil
+
+
+async def kvm_available() -> bool:
+    # If libvirt's tool is available it should return a better answer than we can
+    if shutil.which('virt-host-validate'):
+        p = await asyncio.subprocess.create_subprocess_exec('virt-host-validate', '-q', 'qemu')
+        await p.wait()
+        return p.returncode == 0
+
+    # If it's not available, check CPU flags
+    if not os.access("/proc/cpuinfo", os.R_OK):
+        print(Color.RED + "Unable to read CPU flags" + Color.RESET)
+        return False
+    flaglines = set()
+    flags = set()
+    with open("/proc/cpuinfo") as f:
+        for line in f.readlines():
+            if line.startswith('flags:'):
+                flaglines.add(line)
+    for line in flaglines:
+        flags.update(line.split(':')[1].strip().split())
+
+    return 'svm' in flags or 'vmx' in flags
+
+
 class Color:
     BLACK = "\033[0;30m"
     RED = "\033[0;31m"

@@ -17,7 +17,7 @@ _default_cfg = {
     'qemu_debug': False,
     'qemu_args': [
         # CPU
-        '-enable-kvm', '-smp', '2', '-cpu', 'host',
+        '-smp', '2', '-cpu', 'host',
 
         # RAM
         '-m', '2048',

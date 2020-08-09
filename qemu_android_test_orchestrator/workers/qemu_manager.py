@@ -1,6 +1,7 @@
 import asyncio
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
+from qemu_android_test_orchestrator.utils import kvm_available, Color
 
 
 class QemuSystemManager(WorkerFSM):
@@ -10,10 +11,20 @@ class QemuSystemManager(WorkerFSM):
 
     async def ensure_qemu(self) -> None:
         assert self.shared_state.config
+
+        qemu_args = list(self.shared_state.config['qemu_args'])
+        if await kvm_available():
+            if '-enable-kvm' not in qemu_args:
+                qemu_args.insert(0, '-enable-kvm')
+        else:
+            if '-enable-kvm' in qemu_args:
+                qemu_args.remove('-enable-kvm')
+            print(Color.RED + "KVM is not available, performance may be very low" + Color.RESET)
+
         stdout = asyncio.subprocess.DEVNULL if not self.shared_state.config['qemu_debug'] else None
         self.shared_state.qemu_proc = await asyncio.create_subprocess_exec(
             self.shared_state.config['qemu_bin'],
-            *self.shared_state.config['qemu_args'],
+            *qemu_args,
             cwd=self.shared_state.config['qemu_workdir'],
             stdin=asyncio.subprocess.PIPE, stdout=stdout
         )
