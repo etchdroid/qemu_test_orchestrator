@@ -1,6 +1,4 @@
 import asyncio
-import os
-import sys
 
 from qemu_android_test_orchestrator.config import get_config
 from qemu_android_test_orchestrator.fsm import State, ManagerFSM
@@ -8,9 +6,10 @@ from qemu_android_test_orchestrator.shared_state import SynchronizedObject
 from qemu_android_test_orchestrator.utils import Color
 from qemu_android_test_orchestrator.workers.adb_checker import AdbConnectionChecker
 from qemu_android_test_orchestrator.workers.job_manager import JobManager
-from qemu_android_test_orchestrator.workers.virtwifi_manager import VirtWifiManager
 from qemu_android_test_orchestrator.workers.permission_checker import PermissionDialogChecker
 from qemu_android_test_orchestrator.workers.qemu_manager import QemuSystemManager
+from qemu_android_test_orchestrator.workers.virtwifi_manager import VirtWifiManager
+from qemu_android_test_orchestrator.workers.vnc_recorder import VncRecorder
 
 
 def main() -> None:
@@ -28,6 +27,8 @@ def main() -> None:
         workers.append(VirtWifiManager(shared_state))
     if config['permission_approve']:
         workers.append(PermissionDialogChecker(shared_state))
+    if config['vnc_recorder']:
+        workers.append(VncRecorder(shared_state))
 
     transitions = (
         State.QEMU_UP,

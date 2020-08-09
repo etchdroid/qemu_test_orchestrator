@@ -18,6 +18,7 @@ class SynchronizedObject:
     qemu_proc: Optional[asyncio.subprocess.Process] = None
     job_proc: Optional[asyncio.subprocess.Process] = None
     adb_proc: Optional[asyncio.subprocess.Process] = None
+    vnc_recorder_proc: Optional[asyncio.subprocess.Process] = None
     
     vm_timeout_multiplier = 1
 
