@@ -14,8 +14,11 @@ class VncRecorder(WorkerFSM):
         await asyncio.sleep(1)  # Wait a second for QEMU to start
         recorder_bin = self.shared_state.config['vnc_recorder_bin'] or 'vnc_recorder'
         self.shared_state.vnc_recorder_proc = \
-            await asyncio.create_subprocess_exec(recorder_bin, '--password', '', '--port',
-                                                 str(self.shared_state.config['vnc_recorder_port']))
+            await asyncio.create_subprocess_exec(
+                recorder_bin, '--password', '', '--port', str(self.shared_state.config['vnc_recorder_port']),
+                '--outfile', self.shared_state.config['vnc_recorder_output'],
+                stderr=asyncio.subprocess.DEVNULL
+            )
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.QEMU_UP:
