@@ -6,6 +6,8 @@ from typing import Iterable, Dict, Any, Optional
 # The synchronized access was implemented because I had initially planned to use threads for some operations.
 # The async API turned out to be perfectly fine. I'm going to leave this here for future use if threads are required, it
 # shouldn't cause any performance penalties in single threaded asynchronous usage anyway.
+from qemu_android_test_orchestrator.utils import kvm_available
+
 
 class SynchronizedObject:
     __lock = Lock()
@@ -16,6 +18,8 @@ class SynchronizedObject:
     qemu_proc: Optional[asyncio.subprocess.Process] = None
     job_proc: Optional[asyncio.subprocess.Process] = None
     adb_proc: Optional[asyncio.subprocess.Process] = None
+    
+    vm_timeout_multiplier = 1
 
     def __getattribute__(self, item: str) -> Any:
         if not item.startswith('_'):

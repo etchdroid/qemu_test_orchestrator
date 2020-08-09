@@ -30,7 +30,7 @@ class PermissionDialogChecker(WorkerFSM):
         while line:
             if b'USB-PERMISSION' in line:
                 if b'USB-PERMISSION-REQUESTED' in line:
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(3)
                     await self.approve_permission()
                 # Approve perms only once
                 try:
