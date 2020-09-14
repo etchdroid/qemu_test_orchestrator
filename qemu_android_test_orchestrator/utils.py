@@ -31,6 +31,20 @@ async def kvm_available() -> Tuple[bool, str]:
     return 'svm' in flags or 'vmx' in flags, "cpu flags"
 
 
+async def wait_kms(shared_state: SynchronizedObject) -> bool:
+    count = 1000 * shared_state.vm_timeout_multiplier
+    while count > 0:
+        if not shared_state.qemu_sock_buffer or b'Detecting Android-x86... found at' not in shared_state.qemu_sock_buffer:
+            await asyncio.sleep(0.5)
+        else:
+            # Send a new line to speed up prompt detection in QEMU manager
+            shared_state.qemu_sock_writer.write(b'\r\n')
+            await shared_state.qemu_sock_writer.drain()
+            return True
+        count -= 1
+    return False
+
+
 async def wait_shell_prompt(shared_state: SynchronizedObject) -> bool:
     count = 100 * shared_state.vm_timeout_multiplier
     while count > 0:
