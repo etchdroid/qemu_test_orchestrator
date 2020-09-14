@@ -20,6 +20,7 @@ _default_cfg = {
     'qemu_workdir': None,
     'qemu_bin': f'qemu-system-{os.uname().machine}',
     'qemu_debug': False,
+    'qemu_force_kvm': False,
     'qemu_args': [
         # CPU
         '-smp', '2',
@@ -82,6 +83,7 @@ _environ_cfg: Dict[str, Tuple[str, Callable]] = {
     'qemu_workdir': ('QEMU_WORKDIR', noop),
     'qemu_bin': ('QEMU_BIN', noop),
     'qemu_debug': ('QEMU_DEBUG', env_bool),
+    'qemu_force_kvm': ('QEMU_FORCE_KVM', env_bool)
 }
 
 

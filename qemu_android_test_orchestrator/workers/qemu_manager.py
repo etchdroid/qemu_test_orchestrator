@@ -25,15 +25,22 @@ class QemuSystemManager(WorkerFSM):
         qemu_args = list(self.shared_state.config['qemu_args'])
         kvm, decider = await kvm_available()
         if kvm:
+            print(Color.GREEN + f"KVM is available (decider: {decider})" + Color.RESET)
+        else:
+            print(Color.RED + f"KVM is not available, performance may be very low (decider: {decider})" + Color.RESET)
+
+        if not kvm and self.shared_state.config['qemu_force_kvm']:
+            print(Color.YELLOW + "Ignoring and forcing KVM on as requested" + Color.RESET)
+            kvm = True
+
+        if kvm:
             if '-enable-kvm' not in qemu_args:
                 qemu_args.insert(0, '-enable-kvm')
-            print(Color.GREEN + f"KVM is available (decider: {decider})" + Color.RESET)
         else:
             # Make all timeouts 5 times longer
             self.shared_state.vm_timeout_multiplier = 5
             if '-enable-kvm' in qemu_args:
                 qemu_args.remove('-enable-kvm')
-            print(Color.RED + f"KVM is not available, performance may be very low (decider: {decider})" + Color.RESET)
 
         if qemu_debug:
             print(Color.YELLOW + "QEMU args:" + Color.RESET, " ".join(qemu_args))
