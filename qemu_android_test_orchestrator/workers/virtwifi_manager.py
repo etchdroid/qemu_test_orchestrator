@@ -59,14 +59,16 @@ class VirtWifiManager(WorkerFSM):
         serial.write(b'am start -a android.intent.action.MAIN -n '
                      b'eu.depau.virtwificonnector/.MainActivity\n')
         await serial.drain()
-        await asyncio.sleep(3)
         await wait_shell_prompt(self.shared_state)
+        await asyncio.sleep(5)
 
         # Dismiss "old API" warning
-        serial.write(b'input keyevent KEYCODE_ESCAPE\n')
-        await serial.drain()
-        await asyncio.sleep(0.5)
-        await wait_shell_prompt(self.shared_state)
+        # We really want it out of the way
+        for i in range(10):
+            serial.write(b'input keyevent KEYCODE_ESCAPE\n')
+            await serial.drain()
+            await asyncio.sleep(0.5)
+            await wait_shell_prompt(self.shared_state)
 
         await asyncio.sleep(5)
 
