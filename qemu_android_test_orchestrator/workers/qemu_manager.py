@@ -17,6 +17,7 @@ class QemuSystemManager(WorkerFSM):
         if kvm:
             if '-enable-kvm' not in qemu_args:
                 qemu_args.insert(0, '-enable-kvm')
+            print(Color.GREEN + f"KVM is available (decider: {decider})" + Color.RESET)
         else:
             # Make all timeouts 5 times longer
             self.shared_state.vm_timeout_multiplier = 5
