@@ -59,7 +59,7 @@ class VirtWifiManager(WorkerFSM):
         serial.write(b'am start -a android.intent.action.MAIN -n '
                      b'eu.depau.virtwificonnector/.MainActivity\n')
         await serial.drain()
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(3)
         await wait_shell_prompt(self.shared_state)
 
         # Dismiss "old API" warning
