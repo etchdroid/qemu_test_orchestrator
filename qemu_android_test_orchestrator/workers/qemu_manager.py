@@ -56,7 +56,7 @@ class QemuSystemManager(WorkerFSM):
         reader, writer = await asyncio.open_unix_connection("/tmp/qemu-android.sock")
         self.shared_state.qemu_sock_reader = reader
         self.shared_state.qemu_sock_writer = writer
-        self.shared_state.qemu_sock_buffer = ""
+        self.shared_state.qemu_sock_buffer = b""
         self.shared_state.qemu_sock_stopdebug = False
         asyncio.create_task(self.qemu_log_reader())
         
