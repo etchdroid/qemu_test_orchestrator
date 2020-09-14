@@ -34,7 +34,7 @@ async def kvm_available() -> Tuple[bool, str]:
 async def wait_kms(shared_state: SynchronizedObject) -> bool:
     count = 1000 * shared_state.vm_timeout_multiplier
     while count > 0:
-        if not shared_state.qemu_sock_buffer or b'Detecting Android-x86... found at' not in shared_state.qemu_sock_buffer:
+        if not shared_state.qemu_sock_buffer or b'Detecting Android-x86...' not in shared_state.qemu_sock_buffer:
             await asyncio.sleep(0.5)
         else:
             return True
