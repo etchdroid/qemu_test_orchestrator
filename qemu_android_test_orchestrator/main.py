@@ -55,3 +55,6 @@ def main() -> None:
         print(Color.RED + "Shutting down" + Color.RESET)
     finally:
         loop.run_until_complete(fsm.transition(State.STOP))
+        
+    if shared_state.job_proc:
+        exit(shared_state.job_proc.returncode)
