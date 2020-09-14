@@ -48,8 +48,7 @@ class QemuSystemManager(WorkerFSM):
         self.shared_state.qemu_proc = await asyncio.create_subprocess_exec(
             self.shared_state.config['qemu_bin'],
             *qemu_args,
-            cwd=self.shared_state.config['qemu_workdir'],
-            stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.DEVNULL
+            cwd=self.shared_state.config['qemu_workdir']
         )
 
         # Create serial console socket handle pairs
