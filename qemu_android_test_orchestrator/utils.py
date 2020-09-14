@@ -63,7 +63,7 @@ async def wait_shell_prompt(shared_state: SynchronizedObject) -> bool:
 
 
 async def run_and_expect(command: bytes, expect: bytes, within: int, shared_state: SynchronizedObject) -> bool:
-    count = 100
+    count = 300  # 25 min
     while count > 0:
         shared_state.qemu_sock_writer.write(command)
         await asyncio.sleep(5)
@@ -73,7 +73,7 @@ async def run_and_expect(command: bytes, expect: bytes, within: int, shared_stat
 
 
 async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, shared_state: SynchronizedObject) -> bool:
-    count = 100
+    count = 300  # 25 min
     while count > 0:
         shared_state.qemu_sock_writer.write(command)
         await asyncio.sleep(5)
