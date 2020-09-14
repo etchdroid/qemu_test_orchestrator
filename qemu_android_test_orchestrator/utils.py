@@ -3,6 +3,8 @@ import os
 import shutil
 from typing import Tuple
 
+from qemu_android_test_orchestrator.shared_state import SynchronizedObject
+
 
 async def kvm_available() -> Tuple[bool, str]:
     # If libvirt's tool is available it should return a better answer than we can
@@ -25,6 +27,17 @@ async def kvm_available() -> Tuple[bool, str]:
         flags.update(line.split(':')[1].strip().split())
 
     return 'svm' in flags or 'vmx' in flags, "cpu flags"
+
+
+async def wait_shell_prompt(shared_state: SynchronizedObject) -> bool:
+    count = 100 * shared_state.vm_timeout_multiplier
+    while count > 0:
+        if b"root@x86_64:/ #" not in shared_state.qemu_sock_buffer.splitlines()[-1]:
+            await asyncio.sleep(0.5)
+        else:
+            return True
+        count -= 1
+    return False
 
 
 class Color:

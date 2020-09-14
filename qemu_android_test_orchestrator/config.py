@@ -37,7 +37,8 @@ _default_cfg = {
         '-audiodev', 'none,id=audionull', '-device', 'AC97,audiodev=audionull',
         '-netdev', 'user,id=network,hostfwd=tcp::5555-:5555',
         '-device', 'virtio-net-pci,netdev=network',
-        '-serial', 'mon:stdio',
+        '-chardev', 'socket,id=serial0,path=/tmp/qemu-android.sock,server'
+        '-serial', 'chardev:serial0',
         '-vga', 'qxl',
         '-display', 'vnc=127.0.0.1:10',
 
