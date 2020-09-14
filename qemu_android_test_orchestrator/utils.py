@@ -13,7 +13,7 @@ async def kvm_available() -> Tuple[bool, str]:
                                                             stdout=asyncio.subprocess.PIPE)
         stdout = await p.stdout.read()
         await p.wait()
-        return b"FAIL" in stdout, "libvirt"
+        return b"FAIL" not in stdout, "libvirt"
 
     # If it's not available, check CPU flags
     if not os.access("/proc/cpuinfo", os.R_OK):
