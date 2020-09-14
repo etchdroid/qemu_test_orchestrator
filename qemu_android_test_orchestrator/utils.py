@@ -9,9 +9,11 @@ from qemu_android_test_orchestrator.shared_state import SynchronizedObject
 async def kvm_available() -> Tuple[bool, str]:
     # If libvirt's tool is available it should return a better answer than we can
     if shutil.which('virt-host-validate'):
-        p = await asyncio.subprocess.create_subprocess_exec('virt-host-validate', '-q', 'qemu')
+        p = await asyncio.subprocess.create_subprocess_exec('virt-host-validate', '-q', 'qemu',
+                                                            stdout=asyncio.subprocess.PIPE)
+        stdout = await p.stdout.read()
         await p.wait()
-        return p.returncode == 0, "libvirt"
+        return b"FAIL" in stdout, "libvirt"
 
     # If it's not available, check CPU flags
     if not os.access("/proc/cpuinfo", os.R_OK):
