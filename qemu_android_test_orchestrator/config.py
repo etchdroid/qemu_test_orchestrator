@@ -41,7 +41,8 @@ _default_cfg = {
         '-chardev', 'socket,id=serial0,server,path=/tmp/qemu-android.sock',
         '-serial', 'chardev:serial0',
         '-vga', 'qxl',
-        '-display', 'vnc=127.0.0.1:10',
+        #'-display', 'vnc=127.0.0.1:10',
+        '-display', 'gtk,gl=on',
 
         # Drives and disk images
         '-drive', 'index=0,if=virtio,id=system,file=system.sfs,format=raw,readonly',

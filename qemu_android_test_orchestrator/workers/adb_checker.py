@@ -11,7 +11,7 @@ class AdbConnectionChecker(WorkerFSM):
 
     async def ensure_adb(self) -> None:
         count = 0
-        while count < 120:
+        while count < 1000:
             proc = await asyncio.create_subprocess_exec('adb', 'devices', stdout=asyncio.subprocess.PIPE,
                                                         stderr=asyncio.subprocess.DEVNULL)
             assert proc.stdout
@@ -47,7 +47,7 @@ class AdbConnectionChecker(WorkerFSM):
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.ADB_UP:
-            await asyncio.wait_for(self.ensure_adb(), 120 * self.shared_state.vm_timeout_multiplier)
+            await asyncio.wait_for(self.ensure_adb(), 300 * self.shared_state.vm_timeout_multiplier)
             await asyncio.wait_for(self.kill_package_verifier(), 15 * self.shared_state.vm_timeout_multiplier)
             return TransitionResult.DONE
         return TransitionResult.NOOP
