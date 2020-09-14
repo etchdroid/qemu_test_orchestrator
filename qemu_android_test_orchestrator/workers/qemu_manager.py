@@ -1,7 +1,8 @@
 import asyncio
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
-from qemu_android_test_orchestrator.utils import kvm_available, Color, wait_shell_prompt
+from qemu_android_test_orchestrator.utils import kvm_available, Color, wait_shell_prompt, run_and_expect, \
+    run_and_not_expect
 
 
 class QemuSystemManager(WorkerFSM):
@@ -59,7 +60,7 @@ class QemuSystemManager(WorkerFSM):
         self.shared_state.qemu_sock_buffer = b""
         self.shared_state.qemu_sock_stopdebug = False
         asyncio.create_task(self.qemu_log_reader())
-        
+
         print(Color.GREEN + "Connected to QEMU serial socket" + Color.RESET)
 
         # Wait for a root shell to show up over serial
@@ -69,6 +70,19 @@ class QemuSystemManager(WorkerFSM):
 
         # Give it some other time to start zygote and all the bloat
         await asyncio.sleep(10 * self.shared_state.vm_timeout_multiplier)
+
+        # Wait for SystemUI to be running
+        if not await run_and_expect(b'ps -A | grep systemui\n', b'com.android.systemui', 40, self.shared_state):
+            print(Color.RED + "Warning: timeout waiting for SystemUI" + Color.RESET)
+        else:
+            print(Color.GREEN + "SystemUI is running" + Color.RESET)
+
+        # Wait for package manager to be running
+        if not await run_and_not_expect(
+                b'pm list packages | tail -n 15\n', b'Is the system running?', 100, self.shared_state):
+            print(Color.RED + "Warning: timeout waiting for package manager" + Color.RESET)
+        else:
+            print(Color.GREEN + "Package manager is running" + Color.RESET)
 
     async def ensure_qemu_stopped(self) -> None:
         if not self.shared_state.qemu_proc or self.shared_state.qemu_proc.returncode:
@@ -90,7 +104,7 @@ class QemuSystemManager(WorkerFSM):
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.QEMU_UP:
-            await asyncio.wait_for(self.ensure_qemu(), 300 * self.shared_state.vm_timeout_multiplier)
+            await asyncio.wait_for(self.ensure_qemu(), 600 * self.shared_state.vm_timeout_multiplier)
             return TransitionResult.DONE
         elif state == State.STOP:
             await asyncio.wait_for(self.ensure_qemu_stopped(), 10)

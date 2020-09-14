@@ -62,6 +62,26 @@ async def wait_shell_prompt(shared_state: SynchronizedObject) -> bool:
     return False
 
 
+async def run_and_expect(command: bytes, expect: bytes, within: int, shared_state: SynchronizedObject) -> bool:
+    count = 100
+    while count > 0:
+        shared_state.qemu_sock_writer.write(command)
+        await asyncio.sleep(2)
+        if expect in shared_state.qemu_sock_buffer[:-within]:
+            return True
+    return False
+
+
+async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, shared_state: SynchronizedObject) -> bool:
+    count = 100
+    while count > 0:
+        shared_state.qemu_sock_writer.write(command)
+        await asyncio.sleep(2)
+        if not_expect not in shared_state.qemu_sock_buffer[:-within]:
+            return True
+    return False
+
+
 class Color:
     BLACK = "\033[0;30m"
     RED = "\033[0;31m"
