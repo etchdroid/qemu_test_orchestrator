@@ -1,19 +1,20 @@
 import asyncio
 import os
 import shutil
+from typing import Tuple
 
 
-async def kvm_available() -> bool:
+async def kvm_available() -> Tuple[bool, str]:
     # If libvirt's tool is available it should return a better answer than we can
     if shutil.which('virt-host-validate'):
         p = await asyncio.subprocess.create_subprocess_exec('virt-host-validate', '-q', 'qemu')
         await p.wait()
-        return p.returncode == 0
+        return p.returncode == 0, "libvirt"
 
     # If it's not available, check CPU flags
     if not os.access("/proc/cpuinfo", os.R_OK):
         print(Color.RED + "Unable to read CPU flags" + Color.RESET)
-        return False
+        return False, "cpu flags"
     flaglines = set()
     flags = set()
     with open("/proc/cpuinfo") as f:
@@ -23,7 +24,7 @@ async def kvm_available() -> bool:
     for line in flaglines:
         flags.update(line.split(':')[1].strip().split())
 
-    return 'svm' in flags or 'vmx' in flags
+    return 'svm' in flags or 'vmx' in flags, "cpu flags"
 
 
 class Color:

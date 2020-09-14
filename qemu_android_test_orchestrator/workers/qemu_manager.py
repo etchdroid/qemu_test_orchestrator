@@ -13,7 +13,8 @@ class QemuSystemManager(WorkerFSM):
         assert self.shared_state.config
 
         qemu_args = list(self.shared_state.config['qemu_args'])
-        if await kvm_available():
+        kvm, decider = await kvm_available()
+        if kvm:
             if '-enable-kvm' not in qemu_args:
                 qemu_args.insert(0, '-enable-kvm')
         else:
@@ -21,7 +22,7 @@ class QemuSystemManager(WorkerFSM):
             self.shared_state.vm_timeout_multiplier = 5
             if '-enable-kvm' in qemu_args:
                 qemu_args.remove('-enable-kvm')
-            print(Color.RED + "KVM is not available, performance may be very low" + Color.RESET)
+            print(Color.RED + f"KVM is not available, performance may be very low (decider: {decider})" + Color.RESET)
 
         stdout = asyncio.subprocess.DEVNULL if not self.shared_state.config['qemu_debug'] else None
         self.shared_state.qemu_proc = await asyncio.create_subprocess_exec(
@@ -32,7 +33,7 @@ class QemuSystemManager(WorkerFSM):
         )
         # I could implement a little checker that runs stuff over serial to see if Android is fully up but it's too
         # much effort for now, this should work for the time being
-        if await kvm_available():
+        if kvm:
             await asyncio.sleep(50)
         else:
             await asyncio.sleep(120)
