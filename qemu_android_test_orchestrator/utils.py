@@ -46,9 +46,14 @@ async def wait_kms(shared_state: SynchronizedObject) -> bool:
 
 
 async def wait_shell_prompt(shared_state: SynchronizedObject) -> bool:
-    count = 100 * shared_state.vm_timeout_multiplier
+    # Send an additional new line to ensure the prompt shows
+    shared_state.qemu_sock_writer.write(b'\n')
+    await shared_state.qemu_sock_writer.drain()
+
+    count = 200 * shared_state.vm_timeout_multiplier
     while count > 0:
-        if b"root@x86_64:/ #" not in shared_state.qemu_sock_buffer.splitlines()[-1]:
+        # Check the last few bytes for a shell prompt
+        if len(shared_state.qemu_sock_buffer) < 15 or b":/ # " not in shared_state.qemu_sock_buffer[:-15]:
             await asyncio.sleep(0.5)
         else:
             return True
