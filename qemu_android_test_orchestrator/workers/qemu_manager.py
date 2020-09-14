@@ -59,6 +59,8 @@ class QemuSystemManager(WorkerFSM):
         self.shared_state.qemu_sock_buffer = ""
         self.shared_state.qemu_sock_stopdebug = False
         asyncio.create_task(self.qemu_log_reader())
+        
+        print(Color.GREEN + "Connected to QEMU serial socket" + Color.RESET)
 
         # Wait for a root shell to show up over serial
         found = await wait_shell_prompt(self.shared_state)
