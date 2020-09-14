@@ -10,6 +10,7 @@ from qemu_android_test_orchestrator.workers.permission_checker import Permission
 from qemu_android_test_orchestrator.workers.qemu_manager import QemuSystemManager
 from qemu_android_test_orchestrator.workers.virtwifi_manager import VirtWifiManager
 from qemu_android_test_orchestrator.workers.vnc_recorder import VncRecorder
+from qemu_android_test_orchestrator.workers.log_collector import LogCollector
 
 
 def main() -> None:
@@ -29,6 +30,8 @@ def main() -> None:
         workers.append(PermissionDialogChecker(shared_state))
     if config['vnc_recorder']:
         workers.append(VncRecorder(shared_state))
+    if config['logcat_output']:
+        workers.append(LogCollector(shared_state))
 
     transitions = (
         State.QEMU_UP,
