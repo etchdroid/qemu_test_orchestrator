@@ -37,9 +37,6 @@ async def wait_kms(shared_state: SynchronizedObject) -> bool:
         if not shared_state.qemu_sock_buffer or b'Detecting Android-x86... found at' not in shared_state.qemu_sock_buffer:
             await asyncio.sleep(0.5)
         else:
-            # Send a new line to speed up prompt detection in QEMU manager
-            shared_state.qemu_sock_writer.write(b'\r\n')
-            await shared_state.qemu_sock_writer.drain()
             return True
         count -= 1
     return False
@@ -52,6 +49,10 @@ async def wait_shell_prompt(shared_state: SynchronizedObject) -> bool:
 
     count = 200 * shared_state.vm_timeout_multiplier
     while count > 0:
+        # Give it an encouragement push every ten times in case it's shy
+        if count % 10 == 0:
+            shared_state.qemu_sock_writer.write(b'\n')
+            await shared_state.qemu_sock_writer.drain()
         # Check the last few bytes for a shell prompt
         if len(shared_state.qemu_sock_buffer) < 15 or b":/ # " not in shared_state.qemu_sock_buffer[:-15]:
             await asyncio.sleep(0.5)
