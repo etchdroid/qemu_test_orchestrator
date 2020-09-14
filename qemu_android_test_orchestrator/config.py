@@ -32,7 +32,7 @@ _default_cfg = {
         # Linux
         '-kernel', 'kernel',
         '-append', 'root=/dev/ram0 androidboot.selinux=permissive androidboot.hardware=android_x86_64 console=ttyS0 '
-                   'RAMDISK=vdb SETUPWIZARD=0',
+                   'RAMDISK=vdb SETUPWIZARD=0 SETUPWIZARD=0 SETUPWIZARD=0',
         '-initrd', 'initrd.img',
 
         # Generic hardware
