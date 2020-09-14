@@ -54,7 +54,7 @@ class QemuSystemManager(WorkerFSM):
 
         # Create serial console socket handle pairs
         await asyncio.sleep(1)
-        reader, writer = asyncio.open_unix_connection("/tmp/qemu-android.sock")
+        reader, writer = await asyncio.open_unix_connection("/tmp/qemu-android.sock")
         self.shared_state.qemu_sock_reader = reader
         self.shared_state.qemu_sock_writer = writer
         self.shared_state.qemu_sock_buffer = ""
