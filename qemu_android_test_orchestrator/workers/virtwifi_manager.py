@@ -25,43 +25,45 @@ class VirtWifiManager(WorkerFSM):
         # Turn on wi-fi
         qemu_proc.stdin.write(b'svc wifi enable\n')
         await qemu_proc.stdin.drain()
-        await asyncio.sleep(3)
+        await asyncio.sleep(5)
 
         # Send app apk
         qemu_proc.stdin.write(b'base64 -d > /data/local/tmp/app.apk << EOF\n')
-        # Send the base64 string in 1KB chunks casuse Python and Busybox are little cry babies
+        # Send the base64 string in 1KB chunks cause Python and Busybox are little cry babies
         chunk_size = 1024
         for i in range(0, len(apk_b64), chunk_size):
             qemu_proc.stdin.write(apk_b64[i:i+chunk_size] + b'\n')
             await qemu_proc.stdin.drain()
+            await asyncio.sleep(0.3)
         await asyncio.sleep(0.5)
         qemu_proc.stdin.write(b'EOF\n')
         await qemu_proc.stdin.drain()
-        await asyncio.sleep(3)
+        await asyncio.sleep(5)
 
         # Install app
         qemu_proc.stdin.write(b'pm install /data/local/tmp/app.apk\n')
         await qemu_proc.stdin.drain()
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
 
         # We like our RAM
         qemu_proc.stdin.write(b'rm /data/local/tmp/app.apk\n')
         await qemu_proc.stdin.drain()
+        await asyncio.sleep(2)
 
         # Open app
         qemu_proc.stdin.write(b'am start -a android.intent.action.MAIN -n '
                               b'eu.depau.virtwificonnector/.MainActivity\n')
         await qemu_proc.stdin.drain()
-        await asyncio.sleep(2)
+        await asyncio.sleep(3)
 
         # Dismiss "old API" warning
         qemu_proc.stdin.write(b'input keyevent KEYCODE_ESCAPE\n')
         await qemu_proc.stdin.drain()
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(3)
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.NETWORK_UP:
-            await asyncio.wait_for(self.ensure_virtwifi(), 60 * self.shared_state.vm_timeout_multiplier)
+            await asyncio.wait_for(self.ensure_virtwifi(), 90 * self.shared_state.vm_timeout_multiplier)
             return TransitionResult.DONE
         return TransitionResult.NOOP
 
