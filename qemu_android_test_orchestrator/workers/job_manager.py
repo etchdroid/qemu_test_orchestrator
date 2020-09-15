@@ -17,7 +17,7 @@ class JobManager(WorkerFSM):
             )
             await self.shared_state.job_proc.wait()
             if self.shared_state.job_proc.returncode != 0:
-                raise CalledProcessError(self.shared_state.job_proc.returncode)
+                raise CalledProcessError(self.shared_state.job_proc.returncode, self.shared_state.config['job_command'])
         finally:
             self.shared_state.job_proc = None
 
