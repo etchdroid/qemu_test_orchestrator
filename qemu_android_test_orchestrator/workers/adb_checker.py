@@ -59,7 +59,7 @@ class AdbConnectionChecker(WorkerFSM):
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.ADB_UP:
-            await asyncio.wait_for(self.ensure_adb(), 600 * self.shared_state.vm_timeout_multiplier)
+            await asyncio.wait_for(self.ensure_adb(), 1200 * self.shared_state.vm_timeout_multiplier)
             await asyncio.wait_for(self.kill_package_verifier(), 15 * self.shared_state.vm_timeout_multiplier)
             return TransitionResult.DONE
         return TransitionResult.NOOP
