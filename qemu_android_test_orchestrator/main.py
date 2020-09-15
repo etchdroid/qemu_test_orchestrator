@@ -54,7 +54,7 @@ def main() -> None:
     except (KeyboardInterrupt, EOFError):
         print(Color.RED + "Shutting down" + Color.RESET)
     finally:
-        loop.run_until_complete(fsm.transition(State.STOP))
+        loop.run_until_complete(asyncio.wait_for(fsm.transition(State.STOP), 30))
         
     if shared_state.job_proc:
         exit(shared_state.job_proc.returncode)
