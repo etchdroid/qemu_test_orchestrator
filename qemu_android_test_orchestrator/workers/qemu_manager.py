@@ -104,7 +104,7 @@ class QemuSystemManager(WorkerFSM):
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.QEMU_UP:
-            await self.ensure_qemu()
+            await asyncio.wait_for(self.ensure_qemu(), 60 * 25 * self.shared_state.vm_timeout_multiplier)
             return TransitionResult.DONE
         elif state == State.STOP:
             await asyncio.wait_for(self.ensure_qemu_stopped(), 10)
