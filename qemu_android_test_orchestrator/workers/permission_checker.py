@@ -22,12 +22,18 @@ class PermissionDialogChecker(WorkerFSM):
             await self.keypress(key)
 
     async def ensure_perms_approved(self) -> None:
+        # Gradle likes to kill ADB. Wait a little, and restart if dead
+        await asyncio.sleep(5)
         self.shared_state.adb_proc = await asyncio.create_subprocess_exec('adb', 'logcat',
                                                                           stdout=asyncio.subprocess.PIPE,
                                                                           stderr=asyncio.subprocess.STDOUT)
         assert self.shared_state.adb_proc.stdout  # so that mypy is happy
         line = await self.shared_state.adb_proc.stdout.readline()
         while line:
+            if self.shared_state.adb_proc.returncode is not None:
+                self.shared_state.adb_proc = await asyncio.create_subprocess_exec('adb', 'logcat',
+                                                                                  stdout=asyncio.subprocess.PIPE,
+                                                                                  stderr=asyncio.subprocess.STDOUT)
             if b'USB-PERMISSION' in line:
                 if b'USB-PERMISSION-REQUESTED' in line:
                     await asyncio.sleep(10)
