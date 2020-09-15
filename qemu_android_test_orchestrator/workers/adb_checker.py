@@ -36,12 +36,6 @@ class AdbConnectionChecker(WorkerFSM):
     async def run_oneshot(self, *cmd):
         proc = await asyncio.create_subprocess_exec(*cmd)
         await proc.wait()
-        
-    async def disable_package(self, package):
-        await self.run_oneshot('adb', 'shell', 'pm', 'disable', package)
-        await self.run_oneshot('adb', 'shell', 'pm', 'block', package)
-        await self.run_oneshot('adb', 'shell', 'pm', 'disable-user', package)
-        await self.run_oneshot('adb', 'shell', 'pm', 'disable', '--user', '0', package)
 
     async def kill_package_verifier(self):
         try:
@@ -49,11 +43,6 @@ class AdbConnectionChecker(WorkerFSM):
             await self.run_oneshot('adb', 'shell', 'settings', 'put', 'global', 'package_verifier_enable', '0')
             await self.run_oneshot('adb', 'shell', 'settings', 'put', 'secure', 'package_verifier_enable', '0')
             await self.run_oneshot('adb', 'shell', 'settings', 'put', 'system', 'package_verifier_enable', '0')
-            await self.disable_package('com.android.vending')
-            await self.disable_package('com.google.android.setupwizard')
-            await self.disable_package('com.google.android.youtube')
-            await self.disable_package('com.google.android.feedback')
-
         except Exception:
             warnings.warn('Unable to kill Google package verifier, app installation may be blocked later on')
 

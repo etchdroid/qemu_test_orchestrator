@@ -20,6 +20,21 @@ class QemuSystemManager(WorkerFSM):
             if self.shared_state.config['qemu_debug']:
                 print(Color.YELLOW + f"{log_tag}:" + Color.RESET, line.decode(errors="replace"), end='')
 
+    async def run_oneshot(self, command: str):
+        writer = self.shared_state.qemu_serial_writer
+        assert writer
+        writer.write(command.encode(errors='replace') + b'\n')
+        await writer.drain()
+        await wait_shell_prompt(self.shared_state)
+
+    async def disable_package(self, package):
+        for mode in ('disable --user 0', 'disable', 'disable-user'):
+            await self.run_oneshot(f'pm {mode} {package}')
+
+    async def debloat(self):
+        for package in self.shared_state.config['disable_packages']:
+            await self.disable_package(package)
+
     async def ensure_qemu(self) -> None:
         assert self.shared_state.config
 
@@ -83,18 +98,21 @@ class QemuSystemManager(WorkerFSM):
         # Give it some other time to start zygote and all the bloat
         await asyncio.sleep(10 * self.shared_state.vm_timeout_multiplier)
 
-        # Wait for boot animation to be over
-        if not await run_and_not_expect(b'ps -A | grep bootanim\n', b'bootanimation', 40, self.shared_state):
-            print(Color.RED + "Warning: timeout waiting for boot animation to stop" + Color.RESET)
-        else:
-            print(Color.GREEN + "Boot animation terminated" + Color.RESET)
-
         # Wait for package manager to be running
         if not await run_and_not_expect(
                 b'pm list packages | tail -n 15\n', b'Is the system running?', 100, self.shared_state):
             print(Color.RED + "Warning: timeout waiting for package manager" + Color.RESET)
         else:
             print(Color.GREEN + "Package manager is running" + Color.RESET)
+
+        await self.debloat()
+        print(Color.GREEN + "System debloated" + Color.RESET)
+
+        # Wait for boot animation to be over
+        if not await run_and_not_expect(b'ps -A | grep bootanim\n', b'bootanimation', 40, self.shared_state):
+            print(Color.RED + "Warning: timeout waiting for boot animation to stop" + Color.RESET)
+        else:
+            print(Color.GREEN + "Boot animation terminated" + Color.RESET)
 
     async def ensure_qemu_stopped(self) -> None:
         if not self.shared_state.qemu_proc or self.shared_state.qemu_proc.returncode:
