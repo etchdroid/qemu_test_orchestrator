@@ -24,7 +24,7 @@ _default_cfg = {
     'logcat_output': None,
     'qemu_args': [
         # CPU
-        '-smp', '2',
+        '-smp', '2,cores=1,sockets=1,threads=2',
 
         # RAM
         '-m', '4096',
