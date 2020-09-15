@@ -1,6 +1,7 @@
 import asyncio
 import os
 import shutil
+from os.path import exists
 from typing import Tuple
 
 from qemu_android_test_orchestrator.shared_state import SynchronizedObject
@@ -76,6 +77,15 @@ async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, sha
         await asyncio.sleep(5)
         if not_expect not in shared_state.qemu_serial_buffer[:-within]:
             return True
+
+
+async def wait_exists(file: str):
+    count = 30
+    while not exists(file):
+        count -= 1
+        if count == 0:
+            raise TimeoutError(f"Timeout waiting for '{file}' to show up")
+        await asyncio.sleep(1)
 
 
 async def keypress(shared_state: SynchronizedObject, key: str) -> None:

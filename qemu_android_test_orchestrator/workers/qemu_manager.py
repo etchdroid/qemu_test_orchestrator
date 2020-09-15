@@ -1,9 +1,9 @@
 import asyncio
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
-from qemu_android_test_orchestrator.utils import kvm_available, Color, wait_shell_prompt, run_and_not_expect
+from qemu_android_test_orchestrator.utils import kvm_available, Color, wait_shell_prompt, run_and_not_expect, \
+    wait_exists
 
-from os.path import exists
 
 class QemuSystemManager(WorkerFSM):
     @property
@@ -58,6 +58,7 @@ class QemuSystemManager(WorkerFSM):
         self.shared_state.qemu_sock_stopdebug = False
 
         # Serial
+        await wait_exists("/tmp/qemu-android.sock")
         reader, writer = await asyncio.open_unix_connection("/tmp/qemu-android.sock")
         self.shared_state.qemu_serial_reader = reader
         self.shared_state.qemu_serial_writer = writer
@@ -66,6 +67,7 @@ class QemuSystemManager(WorkerFSM):
         print(Color.GREEN + "Connected to QEMU serial socket" + Color.RESET)
 
         # Monitor
+        await wait_exists("/tmp/qemu-monitor.sock")
         reader, writer = await asyncio.open_unix_connection("/tmp/qemu-monitor.sock")
         self.shared_state.qemu_monitor_reader = reader
         self.shared_state.qemu_monitor_writer = writer
