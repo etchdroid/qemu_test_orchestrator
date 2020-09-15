@@ -2,7 +2,7 @@ import asyncio
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
 from qemu_android_test_orchestrator.shared_state import SynchronizedObject
-from qemu_android_test_orchestrator.utils import keypress
+from qemu_android_test_orchestrator.utils import keypress, Color
 
 
 class PermissionDialogChecker(WorkerFSM):
@@ -46,7 +46,8 @@ class PermissionDialogChecker(WorkerFSM):
 
             if b'USB-PERMISSION' in line:
                 if b'USB-PERMISSION-REQUESTED' in line:
-                    await asyncio.sleep(10)
+                    print(Color.GREEN + "Permission request detected, granting in 5 seconds...")
+                    await asyncio.sleep(5)
                     await self.approve_permission()
                 # Approve perms only once
                 try:
