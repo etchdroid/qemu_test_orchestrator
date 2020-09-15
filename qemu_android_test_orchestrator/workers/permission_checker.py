@@ -13,7 +13,7 @@ class PermissionDialogChecker(WorkerFSM):
     async def keypress(self, key: str) -> None:
         proc = await asyncio.create_subprocess_exec('adb', 'shell', 'input', 'keyevent', 'KEYCODE_' + key)
         await proc.wait()
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
 
     async def approve_permission(self) -> None:
         # /me *shrugs*
@@ -30,7 +30,7 @@ class PermissionDialogChecker(WorkerFSM):
         while line:
             if b'USB-PERMISSION' in line:
                 if b'USB-PERMISSION-REQUESTED' in line:
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(10)
                     await self.approve_permission()
                 # Approve perms only once
                 try:
