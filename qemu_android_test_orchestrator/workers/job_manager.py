@@ -2,7 +2,7 @@ import asyncio
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
 
-
+from subprocess import CalledProcessError
 class JobManager(WorkerFSM):
     @property
     def name(self) -> str:
@@ -15,6 +15,8 @@ class JobManager(WorkerFSM):
                 self.shared_state.config['job_command'], cwd=self.shared_state.config['job_workdir']
             )
             await self.shared_state.job_proc.wait()
+            if self.shared_state.job_proc.returncode != 0:
+                raise CalledProcessError(self.shared_state.job_proc.returncode)
         finally:
             self.shared_state.job_proc = None
 
