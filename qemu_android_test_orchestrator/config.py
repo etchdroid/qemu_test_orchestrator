@@ -11,7 +11,7 @@ _default_cfg = {
     'virtwifi_hack': True,
     'virtwificonnector_apk': 'virtwificonnector-debug.apk',
     'permission_approve': True,
-    'permission_approve_buttons': ['DPAD_RIGHT', 'DPAD_RIGHT', 'ENTER'],
+    'permission_approve_buttons': ['right', 'right', 'ret'],
     'vnc_recorder': False,
     'vnc_recorder_debug': False,
     'vnc_recorder_bin': None,
@@ -24,10 +24,10 @@ _default_cfg = {
     'logcat_output': None,
     'qemu_args': [
         # CPU
-        '-smp', '2',
+        '-smp', '1',
 
         # RAM
-        '-m', '4000',
+        '-m', '512',
 
         # Linux
         '-kernel', 'kernel',
@@ -41,9 +41,11 @@ _default_cfg = {
         '-device', 'virtio-net-pci,netdev=network',
         '-chardev', 'socket,id=serial0,server,path=/tmp/qemu-android.sock',
         '-serial', 'chardev:serial0',
+        '-chardev', 'socket,id=monitor0,server,path=/tmp/qemu-monitor.sock',
+        '-monitor', 'chardev:monitor0',
         '-vga', 'qxl',
-        '-display', 'vnc=127.0.0.1:10',
-        #'-display', 'gtk,gl=on',
+        #'-display', 'vnc=127.0.0.1:10',
+        '-display', 'gtk,gl=on',
 
         # Drives and disk images
         '-drive', 'index=0,if=virtio,id=system,file=system.sfs,format=raw,readonly',

@@ -1,10 +1,9 @@
 import asyncio
 import base64
 import os
-from typing import cast
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
-from qemu_android_test_orchestrator.utils import wait_shell_prompt
+from qemu_android_test_orchestrator.utils import wait_shell_prompt, keypress
 
 
 class VirtWifiManager(WorkerFSM):
@@ -20,7 +19,7 @@ class VirtWifiManager(WorkerFSM):
         with open(apk_file, 'rb') as f:
             apk_b64 = base64.standard_b64encode(f.read())
 
-        serial = self.shared_state.qemu_sock_writer
+        serial = self.shared_state.qemu_serial_writer
         assert serial
 
         # Turn on wi-fi
@@ -64,11 +63,8 @@ class VirtWifiManager(WorkerFSM):
 
         # Dismiss "old API" warning
         # We really want it out of the way
-        for i in range(10):
-            serial.write(b'input keyevent KEYCODE_ESCAPE\n')
-            await serial.drain()
-            await asyncio.sleep(0.5)
-            await wait_shell_prompt(self.shared_state)
+        for i in range(5):
+            await keypress(self.shared_state, 'esc')
 
         await asyncio.sleep(5)
 

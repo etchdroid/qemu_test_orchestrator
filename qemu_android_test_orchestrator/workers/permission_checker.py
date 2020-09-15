@@ -2,6 +2,7 @@ import asyncio
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
 from qemu_android_test_orchestrator.shared_state import SynchronizedObject
+from qemu_android_test_orchestrator.utils import keypress
 
 
 class PermissionDialogChecker(WorkerFSM):
@@ -15,16 +16,11 @@ class PermissionDialogChecker(WorkerFSM):
         super().__init__(shared_state)
         self.should_stop = False
 
-    async def keypress(self, key: str) -> None:
-        proc = await asyncio.create_subprocess_exec('adb', 'shell', 'input', 'keyevent', 'KEYCODE_' + key)
-        await proc.wait()
-        await asyncio.sleep(2)
-
     async def approve_permission(self) -> None:
         # /me *shrugs*
         assert self.shared_state.config
         for key in self.shared_state.config['permission_approve_buttons']:
-            await self.keypress(key)
+            await keypress(self.shared_state, key)
 
     async def ensure_perms_approved(self) -> None:
         # Gradle likes to kill ADB. Wait a little, and restart if dead

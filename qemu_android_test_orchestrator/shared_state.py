@@ -18,10 +18,13 @@ class SynchronizedObject:
     job_proc: Optional[asyncio.subprocess.Process] = None
     adb_proc: Optional[asyncio.subprocess.Process] = None
     vnc_recorder_proc: Optional[asyncio.subprocess.Process] = None
-    qemu_sock_reader: Optional[asyncio.StreamReader] = None
-    qemu_sock_writer: Optional[asyncio.StreamWriter] = None
+    qemu_serial_reader: Optional[asyncio.StreamReader] = None
+    qemu_serial_writer: Optional[asyncio.StreamWriter] = None
+    qemu_monitor_reader: Optional[asyncio.StreamReader] = None
+    qemu_monitor_writer: Optional[asyncio.StreamWriter] = None
+    qemu_serial_buffer: Optional[bytes] = None
+    qemu_monitor_buffer: Optional[bytes] = None
     qemu_sock_stopdebug: Optional[bool] = None
-    qemu_sock_buffer: Optional[bytes] = None
 
     vm_timeout_multiplier = 1
 

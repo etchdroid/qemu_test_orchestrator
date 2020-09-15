@@ -34,7 +34,7 @@ async def kvm_available() -> Tuple[bool, str]:
 async def wait_kms(shared_state: SynchronizedObject) -> bool:
     count = 1000 * shared_state.vm_timeout_multiplier
     while count > 0:
-        if not shared_state.qemu_sock_buffer or b'Detecting Android-x86...' not in shared_state.qemu_sock_buffer:
+        if not shared_state.qemu_serial_buffer or b'Detecting Android-x86...' not in shared_state.qemu_serial_buffer:
             await asyncio.sleep(0.5)
         else:
             return True
@@ -44,17 +44,17 @@ async def wait_kms(shared_state: SynchronizedObject) -> bool:
 
 async def wait_shell_prompt(shared_state: SynchronizedObject) -> bool:
     # Send an additional new line to ensure the prompt shows
-    shared_state.qemu_sock_writer.write(b'\n')
-    await shared_state.qemu_sock_writer.drain()
+    shared_state.qemu_serial_writer.write(b'\n')
+    await shared_state.qemu_serial_writer.drain()
 
     count = 200 * shared_state.vm_timeout_multiplier
     while count > 0:
         # Give it an encouragement push every ten times in case it's shy
         if count % 10 == 0:
-            shared_state.qemu_sock_writer.write(b'\n')
-            await shared_state.qemu_sock_writer.drain()
+            shared_state.qemu_serial_writer.write(b'\n')
+            await shared_state.qemu_serial_writer.drain()
         # Check the last few bytes for a shell prompt
-        if len(shared_state.qemu_sock_buffer) < 15 or b":/ # " not in shared_state.qemu_sock_buffer[:-15]:
+        if len(shared_state.qemu_serial_buffer) < 15 or b":/ # " not in shared_state.qemu_serial_buffer[:-15]:
             await asyncio.sleep(0.5)
         else:
             return True
@@ -64,18 +64,26 @@ async def wait_shell_prompt(shared_state: SynchronizedObject) -> bool:
 
 async def run_and_expect(command: bytes, expect: bytes, within: int, shared_state: SynchronizedObject) -> bool:
     while True:
-        shared_state.qemu_sock_writer.write(command)
+        shared_state.qemu_serial_writer.write(command)
         await asyncio.sleep(5)
-        if expect in shared_state.qemu_sock_buffer[:-within]:
+        if expect in shared_state.qemu_serial_buffer[:-within]:
             return True
 
 
 async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, shared_state: SynchronizedObject) -> bool:
     while True:
-        shared_state.qemu_sock_writer.write(command)
+        shared_state.qemu_serial_writer.write(command)
         await asyncio.sleep(5)
-        if not_expect not in shared_state.qemu_sock_buffer[:-within]:
+        if not_expect not in shared_state.qemu_serial_buffer[:-within]:
             return True
+
+
+async def keypress(shared_state: SynchronizedObject, key: str) -> None:
+    monitor = shared_state.qemu_monitor_writer
+    assert monitor
+    monitor.write(f'sendkey {key}\n'.encode(errors='replace'))
+    await monitor.drain()
+    await asyncio.sleep(2)
 
 
 class Color:

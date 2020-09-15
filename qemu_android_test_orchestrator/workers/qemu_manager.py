@@ -10,14 +10,12 @@ class QemuSystemManager(WorkerFSM):
     def name(self) -> str:
         return 'QEMU manager'
 
-    async def qemu_log_reader(self):
-        reader = self.shared_state.qemu_sock_reader
-
+    async def qemu_log_reader(self, log_tag: str, reader: asyncio.StreamReader, bufname: str):
         while not self.shared_state.qemu_sock_stopdebug:
             line = await reader.readline()
-            self.shared_state.qemu_sock_buffer += line
+            setattr(self.shared_state, bufname, getattr(self.shared_state, bufname) + line)
             if self.shared_state.config['qemu_debug']:
-                print(Color.YELLOW + "VM:" + Color.RESET, line.decode(errors="replace"), end='')
+                print(Color.YELLOW + f"{log_tag}:" + Color.RESET, line.decode(errors="replace"), end='')
 
     async def ensure_qemu(self) -> None:
         assert self.shared_state.config
@@ -52,16 +50,25 @@ class QemuSystemManager(WorkerFSM):
             cwd=self.shared_state.config['qemu_workdir']
         )
 
-        # Create serial console socket handle pairs
+        # Create serial and monitor consoles socket handle pairs
         await asyncio.sleep(1)
-        reader, writer = await asyncio.open_unix_connection("/tmp/qemu-android.sock")
-        self.shared_state.qemu_sock_reader = reader
-        self.shared_state.qemu_sock_writer = writer
-        self.shared_state.qemu_sock_buffer = b""
         self.shared_state.qemu_sock_stopdebug = False
-        asyncio.create_task(self.qemu_log_reader())
 
+        # Serial
+        reader, writer = await asyncio.open_unix_connection("/tmp/qemu-android.sock")
+        self.shared_state.qemu_serial_reader = reader
+        self.shared_state.qemu_serial_writer = writer
+        self.shared_state.qemu_serial_buffer = b""
+        asyncio.create_task(self.qemu_log_reader('VM', reader, 'qemu_serial_buffer'))
         print(Color.GREEN + "Connected to QEMU serial socket" + Color.RESET)
+
+        # Monitor
+        reader, writer = await asyncio.open_unix_connection("/tmp/qemu-monitor.sock")
+        self.shared_state.qemu_monitor_reader = reader
+        self.shared_state.qemu_monitor_writer = writer
+        self.shared_state.qemu_monitor_buffer = b""
+        asyncio.create_task(self.qemu_log_reader('QEMU', reader, 'qemu_monitor_buffer'))
+        print(Color.GREEN + "Connected to QEMU monitor socket" + Color.RESET)
 
         # Wait for a root shell to show up over serial
         found = await wait_shell_prompt(self.shared_state)
@@ -90,7 +97,8 @@ class QemuSystemManager(WorkerFSM):
         self.shared_state.qemu_sock_stopdebug = True
         # Wait one second before killing QEMU to give time to the other workers to terminate gracefully
         await asyncio.sleep(1)
-        self.shared_state.qemu_sock_writer.close()
+        self.shared_state.qemu_serial_writer.close()
+        self.shared_state.qemu_monitor_writer.close()
         try:
             self.shared_state.qemu_proc.terminate()
         except ProcessLookupError:
