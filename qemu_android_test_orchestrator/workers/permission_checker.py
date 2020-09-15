@@ -29,8 +29,15 @@ class PermissionDialogChecker(WorkerFSM):
                                                                           stdout=asyncio.subprocess.PIPE,
                                                                           stderr=asyncio.subprocess.STDOUT)
         assert self.shared_state.adb_proc.stdout  # so that mypy is happy
-        line = await self.shared_state.adb_proc.stdout.readline()
-        while line and not self.should_stop:
+        while not self.should_stop and self.shared_state.job_proc and self.shared_state.job_proc.returncode is None:
+            try:
+                line = await asyncio.wait_for(self.shared_state.adb_proc.stdout.readline(), 1)
+            except TimeoutError:
+                continue
+
+            if not line:
+                break
+
             if self.shared_state.adb_proc.returncode is not None:
                 self.shared_state.adb_proc = await asyncio.create_subprocess_exec('adb', 'logcat',
                                                                                   stdout=asyncio.subprocess.PIPE,
@@ -45,7 +52,6 @@ class PermissionDialogChecker(WorkerFSM):
                 except ProcessLookupError:
                     pass
                 return
-            line = await self.shared_state.adb_proc.stdout.readline()
 
         await self.shared_state.adb_proc.wait()
 

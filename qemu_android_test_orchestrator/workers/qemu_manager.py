@@ -1,8 +1,7 @@
 import asyncio
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
-from qemu_android_test_orchestrator.utils import kvm_available, Color, wait_shell_prompt, run_and_expect, \
-    run_and_not_expect
+from qemu_android_test_orchestrator.utils import kvm_available, Color, wait_shell_prompt, run_and_not_expect
 
 
 class QemuSystemManager(WorkerFSM):
@@ -12,7 +11,10 @@ class QemuSystemManager(WorkerFSM):
 
     async def qemu_log_reader(self, log_tag: str, reader: asyncio.StreamReader, bufname: str):
         while not self.shared_state.qemu_sock_stopdebug:
-            line = await reader.readline()
+            try:
+                line = await asyncio.wait_for(await reader.readline(), 1)
+            except TimeoutError:
+                continue
             setattr(self.shared_state, bufname, getattr(self.shared_state, bufname) + line)
             if self.shared_state.config['qemu_debug']:
                 print(Color.YELLOW + f"{log_tag}:" + Color.RESET, line.decode(errors="replace"), end='')
