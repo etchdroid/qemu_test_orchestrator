@@ -78,11 +78,11 @@ class QemuSystemManager(WorkerFSM):
         # Give it some other time to start zygote and all the bloat
         await asyncio.sleep(10 * self.shared_state.vm_timeout_multiplier)
 
-        # Wait for SystemUI to be running
-        if not await run_and_expect(b'ps -A | grep systemui\n', b'com.android.systemui', 40, self.shared_state):
-            print(Color.RED + "Warning: timeout waiting for SystemUI" + Color.RESET)
+        # Wait for boot animation to be over
+        if not await run_and_not_expect(b'ps -A | grep bootanim\n', b'bootanimation', 40, self.shared_state):
+            print(Color.RED + "Warning: timeout waiting for boot animation to stop" + Color.RESET)
         else:
-            print(Color.GREEN + "SystemUI is running" + Color.RESET)
+            print(Color.GREEN + "Boot animation terminated" + Color.RESET)
 
         # Wait for package manager to be running
         if not await run_and_not_expect(
