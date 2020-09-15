@@ -29,19 +29,21 @@ class PermissionDialogChecker(WorkerFSM):
                                                                           stdout=asyncio.subprocess.PIPE,
                                                                           stderr=asyncio.subprocess.STDOUT)
         assert self.shared_state.adb_proc.stdout  # so that mypy is happy
-        while not self.should_stop and self.shared_state.job_proc and self.shared_state.job_proc.returncode is None:
+        while not self.should_stop and self.shared_state.job_proc.returncode is None:
+            line = None
             try:
                 line = await asyncio.wait_for(self.shared_state.adb_proc.stdout.readline(), 1)
-            except TimeoutError:
-                continue
-
-            if not line:
-                break
+            except asyncio.exceptions.TimeoutError:
+                pass
 
             if self.shared_state.adb_proc.returncode is not None:
                 self.shared_state.adb_proc = await asyncio.create_subprocess_exec('adb', 'logcat',
                                                                                   stdout=asyncio.subprocess.PIPE,
                                                                                   stderr=asyncio.subprocess.STDOUT)
+
+            if not line:
+                break
+
             if b'USB-PERMISSION' in line:
                 if b'USB-PERMISSION-REQUESTED' in line:
                     await asyncio.sleep(10)

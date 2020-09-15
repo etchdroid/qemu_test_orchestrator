@@ -13,8 +13,8 @@ class QemuSystemManager(WorkerFSM):
     async def qemu_log_reader(self, log_tag: str, reader: asyncio.StreamReader, bufname: str):
         while not self.shared_state.qemu_sock_stopdebug:
             try:
-                line = await asyncio.wait_for(await reader.readline(), 1)
-            except TimeoutError:
+                line = await asyncio.wait_for(reader.readline(), 1)
+            except asyncio.exceptions.TimeoutError:
                 continue
             setattr(self.shared_state, bufname, getattr(self.shared_state, bufname) + line)
             if self.shared_state.config['qemu_debug']:
@@ -56,13 +56,6 @@ class QemuSystemManager(WorkerFSM):
         # Create serial and monitor consoles socket handle pairs
         await asyncio.sleep(1)
         self.shared_state.qemu_sock_stopdebug = False
-
-        count = 30
-        while not exists("/tmp/qemu-android.sock") or not exists("/tmp/qemu-monitor.sock"):
-            count -= 1
-            if count == 0:
-                raise TimeoutError("Timeout waiting for QEMU control sockets to show up")
-            await asyncio.sleep(1)
 
         # Serial
         reader, writer = await asyncio.open_unix_connection("/tmp/qemu-android.sock")
