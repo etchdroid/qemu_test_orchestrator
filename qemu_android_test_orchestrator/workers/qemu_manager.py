@@ -3,6 +3,7 @@ import asyncio
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
 from qemu_android_test_orchestrator.utils import kvm_available, Color, wait_shell_prompt, run_and_not_expect
 
+from os.path import exists
 
 class QemuSystemManager(WorkerFSM):
     @property
@@ -55,6 +56,13 @@ class QemuSystemManager(WorkerFSM):
         # Create serial and monitor consoles socket handle pairs
         await asyncio.sleep(1)
         self.shared_state.qemu_sock_stopdebug = False
+
+        count = 30
+        while not exists("/tmp/qemu-android.sock") or not exists("/tmp/qemu-monitor.sock"):
+            count -= 1
+            if count == 0:
+                raise TimeoutError("Timeout waiting for QEMU control sockets to show up")
+            await asyncio.sleep(1)
 
         # Serial
         reader, writer = await asyncio.open_unix_connection("/tmp/qemu-android.sock")
