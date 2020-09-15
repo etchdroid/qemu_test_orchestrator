@@ -1,8 +1,9 @@
 import asyncio
+from subprocess import CalledProcessError
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
 
-from subprocess import CalledProcessError
+
 class JobManager(WorkerFSM):
     @property
     def name(self) -> str:
