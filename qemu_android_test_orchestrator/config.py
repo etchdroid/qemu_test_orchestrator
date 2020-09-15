@@ -27,7 +27,7 @@ _default_cfg = {
         '-smp', '2',
 
         # RAM
-        '-m', '2048',
+        '-m', '1500',
 
         # Linux
         '-kernel', 'kernel',
