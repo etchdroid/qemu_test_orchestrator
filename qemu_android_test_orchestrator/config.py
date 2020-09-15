@@ -24,10 +24,10 @@ _default_cfg = {
     'logcat_output': None,
     'qemu_args': [
         # CPU
-        '-smp', '1',
+        '-smp', '2',
 
         # RAM
-        '-m', '512',
+        '-m', '4096',
 
         # Linux
         '-kernel', 'kernel',
