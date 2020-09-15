@@ -86,6 +86,44 @@ async def keypress(shared_state: SynchronizedObject, key: str) -> None:
     await asyncio.sleep(2)
 
 
+def balloon_stat() -> None:
+    # noinspection PyBroadException
+    try:
+        with open("/proc/vmstat") as f:
+            vmstat = f.read()
+        if "balloon" not in vmstat:
+            return
+        with open("/proc/meminfo") as f:
+            meminfo = f.read()
+
+        # Calculate balloon inflation
+        balloon_infl = int(
+            filter(lambda line: line.startswith("balloon_inflate"), vmstat.splitlines()).__next__().split()[1].strip())
+        balloon_defl = int(
+            filter(lambda line: line.startswith("balloon_deflate"), vmstat.splitlines()).__next__().split()[1].strip())
+
+        balloon_pages = balloon_infl - balloon_defl
+
+        if balloon_pages == 0:
+            print("Memory balloon is not inflated")
+            return
+
+        # Calculate approx page size
+        mapped_kb_str = filter(lambda line: line.startswith("Mapped:"), meminfo.splitlines()).__next__()
+        mapped_bytes = int(mapped_kb_str.split(":")[1].replace("kB", "").strip()) * 1024
+
+        nr_mapped = int(
+            filter(lambda line: line.startswith("nr_mapped"), vmstat.splitlines()).__next__().split()[1].strip())
+        pagesize = int(round(mapped_bytes / nr_mapped, 0))
+
+        balloon_mbytes = round(balloon_pages * pagesize / 1024 ** 2, 1)
+
+        print(f"Memory balloon inflated to {balloon_pages} pages (approx {balloon_mbytes}MB)")
+
+    except Exception:
+        return
+
+
 class Color:
     BLACK = "\033[0;30m"
     RED = "\033[0;31m"

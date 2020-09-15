@@ -9,7 +9,7 @@ from typing import Optional, Dict, Sequence, List, Union
 import paco  # type: ignore
 
 from qemu_android_test_orchestrator.shared_state import SynchronizedObject
-from qemu_android_test_orchestrator.utils import Color
+from qemu_android_test_orchestrator.utils import Color, balloon_stat
 
 
 class State(Enum):
@@ -121,6 +121,7 @@ class ManagerFSM(AbstractFSM):
         print("Trying to reach next state, waiting for worker rendezvous")
         print("Memory usage:")
         subprocess.Popen(['free', '-h']).wait()
+        balloon_stat()
         print(('-' * len(message)) + Color.RESET)
         print_progress_update()
 
