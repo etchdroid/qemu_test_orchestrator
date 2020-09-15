@@ -28,6 +28,10 @@ class VirtWifiManager(WorkerFSM):
         await asyncio.sleep(0.5)
         await wait_shell_prompt(self.shared_state)
 
+        # Temporarily disable debug to avoid echoing the APK back to the log
+        debug = self.shared_state.config['qemu_debug']
+        self.shared_state.config['qemu_debug'] = False
+
         # Send app apk
         serial.write(b'base64 -d > /data/local/tmp/app.apk << EOF\n')
         # Send the base64 string in 1KB chunks cause Python and Busybox are little cry babies
@@ -36,9 +40,13 @@ class VirtWifiManager(WorkerFSM):
             serial.write(apk_b64[i:i + chunk_size] + b'\n')
             await serial.drain()
             await asyncio.sleep(0.1)
+
         await asyncio.sleep(0.5)
         serial.write(b'EOF\n')
         await serial.drain()
+
+        self.shared_state.config['qemu_debug'] = debug
+
         await asyncio.sleep(1)
         await wait_shell_prompt(self.shared_state)
 
