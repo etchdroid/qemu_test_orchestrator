@@ -1,6 +1,7 @@
 import asyncio
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
+from qemu_android_test_orchestrator.shared_state import SynchronizedObject
 
 
 class PermissionDialogChecker(WorkerFSM):
@@ -9,6 +10,10 @@ class PermissionDialogChecker(WorkerFSM):
     @property
     def name(self) -> str:
         return 'Permission approver'
+
+    def __init__(self, shared_state: SynchronizedObject) -> None:
+        super().__init__(shared_state)
+        self.should_stop = False
 
     async def keypress(self, key: str) -> None:
         proc = await asyncio.create_subprocess_exec('adb', 'shell', 'input', 'keyevent', 'KEYCODE_' + key)
@@ -29,7 +34,7 @@ class PermissionDialogChecker(WorkerFSM):
                                                                           stderr=asyncio.subprocess.STDOUT)
         assert self.shared_state.adb_proc.stdout  # so that mypy is happy
         line = await self.shared_state.adb_proc.stdout.readline()
-        while line:
+        while line and not self.should_stop:
             if self.shared_state.adb_proc.returncode is not None:
                 self.shared_state.adb_proc = await asyncio.create_subprocess_exec('adb', 'logcat',
                                                                                   stdout=asyncio.subprocess.PIPE,
@@ -56,6 +61,7 @@ class PermissionDialogChecker(WorkerFSM):
             return TransitionResult.DONE
         elif state == State.STOP:
             ret = TransitionResult.NOOP
+            self.should_stop = True
             if self.shared_state.adb_proc and self.shared_state.adb_proc.returncode is None:
                 try:
                     self.shared_state.adb_proc.kill()
