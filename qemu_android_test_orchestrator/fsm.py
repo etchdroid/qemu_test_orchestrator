@@ -2,6 +2,7 @@
 
 import abc
 import asyncio
+import subprocess
 from enum import Enum, auto
 from typing import Optional, Dict, Sequence, List, Union
 
@@ -118,6 +119,8 @@ class ManagerFSM(AbstractFSM):
         print(Color.BROWN + ('-' * len(message)))
         print(message)
         print("Trying to reach next state, waiting for worker rendezvous")
+        print("Memory usage:")
+        subprocess.Popen(['free', '-h']).wait()
         print(('-' * len(message)) + Color.RESET)
         print_progress_update()
 
