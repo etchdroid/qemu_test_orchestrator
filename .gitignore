@@ -1,3 +1,6 @@
+# Ignore config unless forced
+qemu_android_test_orchestrator/config.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
