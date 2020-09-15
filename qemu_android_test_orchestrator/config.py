@@ -44,8 +44,8 @@ _default_cfg = {
         '-chardev', 'socket,id=monitor0,server,path=/tmp/qemu-monitor.sock',
         '-monitor', 'chardev:monitor0',
         '-vga', 'qxl',
-        #'-display', 'vnc=127.0.0.1:10',
-        '-display', 'gtk,gl=on',
+        '-display', 'vnc=127.0.0.1:10',
+        #'-display', 'gtk,gl=on',
 
         # Drives and disk images
         '-drive', 'index=0,if=virtio,id=system,file=system.sfs,format=raw,readonly',
