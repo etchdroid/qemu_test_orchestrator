@@ -42,7 +42,7 @@ class PermissionDialogChecker(WorkerFSM):
                                                                                   stderr=asyncio.subprocess.STDOUT)
 
             if not line:
-                break
+                continue
 
             if b'USB-PERMISSION' in line:
                 if b'USB-PERMISSION-REQUESTED' in line:
