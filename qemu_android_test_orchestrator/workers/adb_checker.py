@@ -11,7 +11,7 @@ class AdbConnectionChecker(WorkerFSM):
 
     async def ensure_adb(self) -> None:
         count = 0
-        while count < 1000:
+        while True:
             proc = await asyncio.create_subprocess_exec('adb', 'devices', stdout=asyncio.subprocess.PIPE,
                                                         stderr=asyncio.subprocess.DEVNULL)
             assert proc.stdout
@@ -31,8 +31,6 @@ class AdbConnectionChecker(WorkerFSM):
             await asyncio.sleep(0.5 * self.shared_state.vm_timeout_multiplier)
             count += 1
 
-        raise TimeoutError("Timed out waiting for adb to show up")
-
     async def run_oneshot(self, *cmd):
         proc = await asyncio.create_subprocess_exec(*cmd)
         await proc.wait()
@@ -48,7 +46,7 @@ class AdbConnectionChecker(WorkerFSM):
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.ADB_UP:
-            await asyncio.wait_for(self.ensure_adb(), 600 * self.shared_state.vm_timeout_multiplier)
+            await asyncio.wait_for(self.ensure_adb(), 1200 * self.shared_state.vm_timeout_multiplier)
             await asyncio.wait_for(self.kill_package_verifier(), 120 * self.shared_state.vm_timeout_multiplier)
             return TransitionResult.DONE
         return TransitionResult.NOOP
