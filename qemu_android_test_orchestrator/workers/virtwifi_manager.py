@@ -3,7 +3,7 @@ import base64
 import os
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
-from qemu_android_test_orchestrator.utils import wait_shell_prompt, keypress
+from qemu_android_test_orchestrator.utils import wait_shell_prompt, keypress, run_and_expect, Color
 
 
 class VirtWifiManager(WorkerFSM):
@@ -32,6 +32,12 @@ class VirtWifiManager(WorkerFSM):
         debug = self.shared_state.config['qemu_debug']
         self.shared_state.config['qemu_debug'] = False
 
+        # Write some new lines so that the debugger picks up on debug = False
+        serial.write(b'\n\n')
+        print(Color.GREEN +
+              "Sending VirtWifi APK" + (" (debug output suppressed temporarily)" if debug else "") + Color.RESET)
+        await serial.drain()
+
         # Send app apk
         serial.write(b'base64 -d > /data/local/tmp/app.apk << EOF\n')
         # Send the base64 string in 1KB chunks cause Python and Busybox are little cry babies
@@ -44,6 +50,9 @@ class VirtWifiManager(WorkerFSM):
         await asyncio.sleep(0.5)
         serial.write(b'EOF\n')
         await serial.drain()
+
+        # Waiting for the package manager seems a reliable way to detect something has finished
+        await run_and_expect(b'pm list packages | tail -n 15\n', b'package:', 200, self.shared_state)
 
         self.shared_state.config['qemu_debug'] = debug
 
