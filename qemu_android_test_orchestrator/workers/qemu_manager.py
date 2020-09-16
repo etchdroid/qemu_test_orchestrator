@@ -113,6 +113,9 @@ class QemuSystemManager(WorkerFSM):
         await asyncio.sleep(10)
         await wait_shell_prompt(self.shared_state)
 
+        # Await package manager again to prevent proceeding because bootanimation is not outputted
+        await run_and_expect(b'pm list packages | tail -n 15\n', b'package:', 200, self.shared_state)
+
         # Wait for boot animation to be over
         if not await run_and_not_expect(b'ps -A | grep bootanim\n', b'bootanimation', 40, self.shared_state):
             print(Color.RED + "Warning: timeout waiting for boot animation to stop" + Color.RESET)
