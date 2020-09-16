@@ -25,6 +25,8 @@ class LogCollector(WorkerFSM):
         assert config
         if config['logcat_output']:
             self.run_and_log(config['logcat_output'], 'adb', 'logcat', '-d')
+        if config['dmesg_output']:
+            self.run_and_log(config['dmesg_output'], 'adb', 'shell', 'su', '-c', 'dmesg')
 
     # noinspection PyBroadException
     async def enter_state(self, state: State) -> TransitionResult:

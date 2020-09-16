@@ -22,6 +22,7 @@ _default_cfg = {
     'qemu_debug': False,
     'qemu_force_kvm': False,
     'logcat_output': None,
+    'dmesg_output': None,
     'qemu_args': [
         # CPU
         '-smp', '2,cores=1,sockets=1,threads=2',
@@ -120,7 +121,8 @@ _environ_cfg: Dict[str, Tuple[str, Callable]] = {
     'qemu_bin': ('QEMU_BIN', noop),
     'qemu_debug': ('QEMU_DEBUG', env_bool),
     'qemu_force_kvm': ('QEMU_FORCE_KVM', env_bool),
-    'logcat_output': ('LOGCAT_OUTPUT', noop)
+    'logcat_output': ('LOGCAT_OUTPUT', noop),
+    'dmesg_output': ('DMESG_OUTPUT', noop)
 }
 
 

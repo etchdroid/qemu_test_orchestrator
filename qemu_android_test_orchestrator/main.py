@@ -37,7 +37,7 @@ def main() -> None:
         workers.append(PermissionDialogChecker(shared_state))
     if config['vnc_recorder']:
         workers.append(VncRecorder(shared_state))
-    if config['logcat_output']:
+    if config['logcat_output'] or config['dmesg_output']:
         workers.append(LogCollector(shared_state))
         transitions.append(State.LOGCAT)
 
