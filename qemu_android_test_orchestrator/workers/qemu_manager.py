@@ -110,6 +110,9 @@ class QemuSystemManager(WorkerFSM):
         await self.debloat()
         print(Color.GREEN + "System debloated" + Color.RESET)
 
+        await asyncio.sleep(10)
+        await wait_shell_prompt(self.shared_state)
+
         # Wait for boot animation to be over
         if not await run_and_not_expect(b'ps -A | grep bootanim\n', b'bootanimation', 40, self.shared_state):
             print(Color.RED + "Warning: timeout waiting for boot animation to stop" + Color.RESET)
