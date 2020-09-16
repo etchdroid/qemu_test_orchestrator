@@ -79,6 +79,11 @@ async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, sha
             return True
 
 
+async def detect_package_manager(shared_state: SynchronizedObject) -> bool:
+    return await run_and_expect(b'pm list packages | grep "package.com" | tail -n 5\n', b'package:com', 200,
+                                shared_state)
+
+
 async def wait_exists(file: str):
     count = 30
     while not exists(file):

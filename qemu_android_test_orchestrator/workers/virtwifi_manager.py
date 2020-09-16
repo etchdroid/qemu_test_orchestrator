@@ -3,7 +3,8 @@ import base64
 import os
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
-from qemu_android_test_orchestrator.utils import wait_shell_prompt, keypress, run_and_expect, Color
+from qemu_android_test_orchestrator.utils import wait_shell_prompt, keypress, run_and_expect, Color, \
+    detect_package_manager
 
 
 class VirtWifiManager(WorkerFSM):
@@ -52,7 +53,7 @@ class VirtWifiManager(WorkerFSM):
         await serial.drain()
 
         # Waiting for the package manager seems a reliable way to detect something has finished
-        await run_and_expect(b'pm list packages | tail -n 15\n', b'package:', 200, self.shared_state)
+        await detect_package_manager(self.shared_state)
 
         self.shared_state.config['qemu_debug'] = debug
 

@@ -2,7 +2,7 @@ import asyncio
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
 from qemu_android_test_orchestrator.utils import kvm_available, Color, wait_shell_prompt, run_and_not_expect, \
-    wait_exists, run_and_expect
+    wait_exists, run_and_expect, detect_package_manager
 
 
 class QemuSystemManager(WorkerFSM):
@@ -101,8 +101,7 @@ class QemuSystemManager(WorkerFSM):
         await asyncio.sleep(10 * self.shared_state.vm_timeout_multiplier)
 
         # Wait for package manager to be running
-        if not await run_and_expect(
-                b'pm list packages | tail -n 15\n', b'package:', 200, self.shared_state):
+        if not await detect_package_manager(self.shared_state):
             print(Color.RED + "Warning: timeout waiting for package manager" + Color.RESET)
         else:
             print(Color.GREEN + "Package manager is running" + Color.RESET)
@@ -114,7 +113,7 @@ class QemuSystemManager(WorkerFSM):
         await wait_shell_prompt(self.shared_state)
 
         # Await package manager again to prevent proceeding because bootanimation is not outputted
-        await run_and_expect(b'pm list packages | tail -n 15\n', b'package:', 200, self.shared_state)
+        await detect_package_manager(self.shared_state)
 
         # Wait for boot animation to be over
         if not await run_and_not_expect(b'ps -A | grep bootanim\n', b'bootanimation', 40, self.shared_state):
