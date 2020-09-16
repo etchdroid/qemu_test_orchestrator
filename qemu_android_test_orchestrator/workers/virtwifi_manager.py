@@ -29,6 +29,8 @@ class VirtWifiManager(WorkerFSM):
         await asyncio.sleep(0.5)
         await wait_shell_prompt(self.shared_state)
 
+        await wait_shell_available(self.shared_state)
+
         # Temporarily disable debug to avoid echoing the APK back to the log
         debug = self.shared_state.config['qemu_debug']
         self.shared_state.config['qemu_debug'] = False
@@ -65,6 +67,8 @@ class VirtWifiManager(WorkerFSM):
         await asyncio.sleep(0.5)
         await wait_shell_prompt(self.shared_state)
 
+        await wait_shell_available(self.shared_state)
+
         # We like our RAM
         serial.write(b'rm /data/local/tmp/app.apk\n')
         await serial.drain()
@@ -77,6 +81,8 @@ class VirtWifiManager(WorkerFSM):
         await serial.drain()
         await wait_shell_prompt(self.shared_state)
         await asyncio.sleep(5)
+
+        await wait_shell_available(self.shared_state)
 
         # Dismiss "old API" warning
         # We really want it out of the way
