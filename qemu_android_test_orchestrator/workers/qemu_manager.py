@@ -31,8 +31,10 @@ class QemuSystemManager(WorkerFSM):
             await self.run_oneshot(f'pm {mode} {package}')
 
     async def debloat(self):
+        self.shared_state.qemu_serial_writer.write(b'(\n')
         for package in self.shared_state.config['disable_packages']:
             await self.disable_package(package)
+        self.shared_state.qemu_serial_writer.write(b')\n')
         await wait_shell_prompt(self.shared_state)
 
     async def ensure_qemu(self) -> None:
