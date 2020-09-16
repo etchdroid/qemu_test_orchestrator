@@ -24,6 +24,13 @@ def main() -> None:
         AdbConnectionChecker(shared_state)
     ]
 
+    transitions = [
+        State.QEMU_UP,
+        State.NETWORK_UP,
+        State.ADB_UP,
+        State.JOB
+    ]
+
     if config['virtwifi_hack']:
         workers.append(VirtWifiManager(shared_state))
     if config['permission_approve']:
@@ -32,13 +39,7 @@ def main() -> None:
         workers.append(VncRecorder(shared_state))
     if config['logcat_output']:
         workers.append(LogCollector(shared_state))
-
-    transitions = (
-        State.QEMU_UP,
-        State.NETWORK_UP,
-        State.ADB_UP,
-        State.JOB
-    )
+        transitions.append(State.LOGCAT)
 
     fsm = ManagerFSM()
     for w in workers:

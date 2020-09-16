@@ -14,36 +14,23 @@ class LogCollector(WorkerFSM):
         self.processes = []
         self.files = []
 
-    def run_and_log(self, outfile: str, *command: str):
-        f = open(outfile, "w")
-        self.files.append(f)
-        p = subprocess.Popen(command, stdout=f, stderr=subprocess.STDOUT)
-        self.processes.append(p)
+    @staticmethod
+    def run_and_log(outfile: str, *command: str):
+        with open(outfile, "w") as f:
+            p = subprocess.Popen(command, stdout=f, stderr=subprocess.STDOUT)
+            p.wait()
 
-    def start_log_collection(self) -> None:
+    def collect_logs(self) -> None:
         config = self.shared_state.config
         assert config
         if config['logcat_output']:
-            self.run_and_log(config['logcat_output'], 'adb', 'logcat')
-            
-    def stop_log_collection(self) -> None:
-        for p in self.processes:
-            p.kill()
-        for f in self.files:
-            f.flush()
-            f.close()
+            self.run_and_log(config['logcat_output'], 'adb', 'logcat', '-d')
 
     # noinspection PyBroadException
     async def enter_state(self, state: State) -> TransitionResult:
-        if state == State.JOB:
-            self.start_log_collection()
+        if state == State.LOGCAT:
+            self.collect_logs()
             return TransitionResult.DONE
-        elif state == State.STOP and self.shared_state.job_proc:
-            try:
-                self.stop_log_collection()
-                return TransitionResult.DONE
-            except Exception:
-                pass
         return TransitionResult.NOOP
 
     async def exit_state(self, state: State) -> TransitionResult:

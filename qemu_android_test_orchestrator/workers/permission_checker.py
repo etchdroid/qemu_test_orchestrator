@@ -64,7 +64,7 @@ class PermissionDialogChecker(WorkerFSM):
             await self.ensure_coro
             self.ensure_coro = None
             return TransitionResult.DONE
-        elif state == State.STOP:
+        elif state in (State.LOGCAT, State.STOP):
             ret = TransitionResult.NOOP
             self.should_stop = True
             if self.shared_state.adb_proc and self.shared_state.adb_proc.returncode is None:

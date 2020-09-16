@@ -23,6 +23,8 @@ class State(Enum):
     ADB_UP = auto()
     # Once reached, job was run and has terminated
     JOB = auto()
+    # Once reached, the logcat is collected
+    LOGCAT = auto()
     # Some job transition failed - the manager FSM will have this state but the workers will keep their own, so they
     # can still at least try to stop again
     UNKNOWN = auto()
@@ -31,11 +33,12 @@ class State(Enum):
 
 
 _allowed_transitions: Dict[State, Sequence[State]] = {
-    State.START: (State.QEMU_UP, State.STOP),
-    State.QEMU_UP: (State.NETWORK_UP, State.STOP),
-    State.NETWORK_UP: (State.ADB_UP, State.STOP),
-    State.ADB_UP: (State.JOB, State.STOP),
-    State.JOB: (State.STOP,),
+    State.START: (State.QEMU_UP,),
+    State.QEMU_UP: (State.NETWORK_UP,),
+    State.NETWORK_UP: (State.ADB_UP,),
+    State.ADB_UP: (State.JOB,),
+    State.JOB: (State.LOGCAT, State.STOP),
+    State.LOGCAT: (State.STOP,),
     State.UNKNOWN: (State.STOP,),
     State.STOP: ()
 }
