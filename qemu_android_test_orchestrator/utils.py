@@ -67,7 +67,7 @@ async def run_and_expect(command: bytes, expect: bytes, within: int, shared_stat
     while True:
         shared_state.qemu_serial_writer.write(command)
         await asyncio.sleep(5)
-        if expect in shared_state.qemu_serial_buffer[:-within]:
+        if expect in shared_state.qemu_serial_buffer[-within:]:
             return True
 
 
@@ -75,7 +75,7 @@ async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, sha
     while True:
         shared_state.qemu_serial_writer.write(command)
         await asyncio.sleep(5)
-        if not_expect not in shared_state.qemu_serial_buffer[:-within]:
+        if not_expect not in shared_state.qemu_serial_buffer[-within:]:
             return True
 
 
