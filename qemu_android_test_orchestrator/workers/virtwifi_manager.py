@@ -56,10 +56,14 @@ class VirtWifiManager(WorkerFSM):
 
         await wait_shell_available(self.shared_state)
 
+        serial.write(b'\n\n')
+        await serial.drain()
+
         self.shared_state.config['qemu_debug'] = debug
 
-        await asyncio.sleep(1)
-        await wait_shell_prompt(self.shared_state)
+        serial.write(b"md6sum /data/local/tmp/app.apk\n")
+
+        await wait_shell_available(self.shared_state)
 
         # Install app
         serial.write(b'pm install /data/local/tmp/app.apk\n')
@@ -93,7 +97,7 @@ class VirtWifiManager(WorkerFSM):
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.NETWORK_UP:
-            await asyncio.wait_for(self.ensure_virtwifi(), 500 * self.shared_state.vm_timeout_multiplier)
+            await asyncio.wait_for(self.ensure_virtwifi(), 1000 * self.shared_state.vm_timeout_multiplier)
             return TransitionResult.DONE
         return TransitionResult.NOOP
 
