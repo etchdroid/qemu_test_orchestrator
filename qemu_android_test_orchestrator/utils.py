@@ -1,5 +1,6 @@
 import asyncio
 import os
+import random
 import shutil
 from os.path import exists
 from typing import Tuple
@@ -66,6 +67,7 @@ async def wait_shell_prompt(shared_state: SynchronizedObject) -> bool:
 async def run_and_expect(command: bytes, expect: bytes, within: int, shared_state: SynchronizedObject) -> bool:
     while True:
         shared_state.qemu_serial_writer.write(command)
+        await shared_state.qemu_serial_writer.drain()
         await asyncio.sleep(5)
         if expect in shared_state.qemu_serial_buffer[-within:]:
             return True
@@ -74,9 +76,27 @@ async def run_and_expect(command: bytes, expect: bytes, within: int, shared_stat
 async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, shared_state: SynchronizedObject) -> bool:
     while True:
         shared_state.qemu_serial_writer.write(command)
+        await shared_state.qemu_serial_writer.drain()
         await asyncio.sleep(5)
         if not_expect not in shared_state.qemu_serial_buffer[-within:]:
             return True
+
+
+async def wait_shell_available(shared_state: SynchronizedObject) -> None:
+    count = 0
+    n1, n2 = 0, 0
+    while True:
+        # Resend challenge every 10 attempts
+        if count % 10 == 0:
+            n1 = random.randint(0, 0x07FFFFFF)
+            n2 = random.randint(0, 0x07FFFFFF)
+            shared_state.qemu_serial_writer.write(f'let "n = {n1} + {n2}"; echo $n'.encode())
+            await shared_state.qemu_serial_writer.drain()
+            await wait_shell_prompt(shared_state)
+        if str(n1 + n2).encode() in shared_state.qemu_serial_buffer[-200:]:
+            return
+        count += 1
+        await asyncio.sleep(2)
 
 
 async def detect_package_manager(shared_state: SynchronizedObject) -> bool:

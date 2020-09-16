@@ -4,7 +4,7 @@ import os
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
 from qemu_android_test_orchestrator.utils import wait_shell_prompt, keypress, run_and_expect, Color, \
-    detect_package_manager
+    detect_package_manager, wait_shell_available
 
 
 class VirtWifiManager(WorkerFSM):
@@ -35,9 +35,9 @@ class VirtWifiManager(WorkerFSM):
 
         # Write some new lines so that the debugger picks up on debug = False
         serial.write(b'\n\n')
+        await serial.drain()
         print(Color.GREEN +
               "Sending VirtWifi APK" + (" (debug output suppressed temporarily)" if debug else "") + Color.RESET)
-        await serial.drain()
 
         # Send app apk
         serial.write(b'base64 -d > /data/local/tmp/app.apk << EOF\n')
@@ -52,8 +52,7 @@ class VirtWifiManager(WorkerFSM):
         serial.write(b'EOF\n')
         await serial.drain()
 
-        # Waiting for the package manager seems a reliable way to detect something has finished
-        await detect_package_manager(self.shared_state)
+        await wait_shell_available(self.shared_state)
 
         self.shared_state.config['qemu_debug'] = debug
 
