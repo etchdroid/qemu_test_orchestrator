@@ -25,7 +25,6 @@ class QemuSystemManager(WorkerFSM):
         assert writer
         writer.write(command.encode(errors='replace') + b'\n')
         await writer.drain()
-        await wait_shell_prompt(self.shared_state)
 
     async def disable_package(self, package):
         for mode in ('disable --user 0', 'disable', 'disable-user'):
@@ -34,6 +33,7 @@ class QemuSystemManager(WorkerFSM):
     async def debloat(self):
         for package in self.shared_state.config['disable_packages']:
             await self.disable_package(package)
+        await wait_shell_prompt(self.shared_state)
 
     async def ensure_qemu(self) -> None:
         assert self.shared_state.config
