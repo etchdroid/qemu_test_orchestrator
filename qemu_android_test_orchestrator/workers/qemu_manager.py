@@ -27,7 +27,7 @@ class QemuSystemManager(WorkerFSM):
         await writer.drain()
 
     async def disable_package(self, package):
-        for mode in ('disable --user 0', 'disable', 'disable-user'):
+        for mode in ('disable --user 0',):
             await self.run_oneshot(f'pm {mode} {package}')
 
     async def debloat(self):
