@@ -61,7 +61,7 @@ class VirtWifiManager(WorkerFSM):
 
         self.shared_state.config['qemu_debug'] = debug
 
-        serial.write(b"md6sum /data/local/tmp/app.apk\n")
+        serial.write(b"md5sum /data/local/tmp/app.apk\n")
 
         await wait_shell_available(self.shared_state)
 
