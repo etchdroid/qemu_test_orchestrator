@@ -11,15 +11,12 @@ class JobManager(WorkerFSM):
 
     async def run_job(self) -> None:
         assert self.shared_state.config
-        try:
-            self.shared_state.job_proc = await asyncio.create_subprocess_shell(
-                self.shared_state.config['job_command'], cwd=self.shared_state.config['job_workdir']
-            )
-            await self.shared_state.job_proc.wait()
-            if self.shared_state.job_proc.returncode != 0:
-                raise CalledProcessError(self.shared_state.job_proc.returncode, self.shared_state.config['job_command'])
-        finally:
-            self.shared_state.job_proc = None
+        self.shared_state.job_proc = await asyncio.create_subprocess_shell(
+            self.shared_state.config['job_command'], cwd=self.shared_state.config['job_workdir']
+        )
+        await self.shared_state.job_proc.wait()
+        if self.shared_state.job_proc.returncode != 0:
+            raise CalledProcessError(self.shared_state.job_proc.returncode, self.shared_state.config['job_command'])
 
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.JOB:
