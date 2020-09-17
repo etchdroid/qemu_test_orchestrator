@@ -3,6 +3,7 @@
 import abc
 import asyncio
 import subprocess
+import traceback
 from enum import Enum, auto
 from typing import Optional, Dict, Sequence, List, Union
 
@@ -36,7 +37,7 @@ _allowed_transitions: Dict[State, Sequence[State]] = {
     State.START: (State.QEMU_UP, State.STOP),
     State.QEMU_UP: (State.NETWORK_UP, State.STOP),
     State.NETWORK_UP: (State.ADB_UP, State.STOP),
-    State.ADB_UP: (State.JOB, State.STOP),
+    State.ADB_UP: (State.JOB, State.LOGCAT, State.STOP),
     State.JOB: (State.LOGCAT, State.STOP,),
     State.LOGCAT: (State.STOP,),
     State.UNKNOWN: (State.STOP,),
@@ -47,7 +48,7 @@ _allowed_transitions: Dict[State, Sequence[State]] = {
 class TransitionResult(Enum):
     NOOP = auto()
     DONE = auto()
-    # On error, an exception is raised
+    ERROR = auto()
 
 
 class InvalidTransitionError(Exception):
@@ -100,6 +101,7 @@ class ManagerFSM(AbstractFSM):
             result_names = {
                 TransitionResult.DONE: Color.YELLOW + "Action performed" + Color.RESET,
                 TransitionResult.NOOP: Color.GREEN + "Ok" + Color.RESET,
+                TransitionResult.ERROR: Color.RED + "ERROR" + Color.RESET,
                 None: "Pending"
             }
 
@@ -144,6 +146,14 @@ class ManagerFSM(AbstractFSM):
                     raise exc
             self._cur_state = wanted_state
         except Exception:
+            # If state is JOB, next state will be either LOGCAT or STOP, so let's not die yet
+            if wanted_state == State.JOB:
+                print(Color.RED + "Error in JOB state. Ignoring error state transition and proceeding to next state")
+                traceback.print_exc()
+                print(Color.RESET, end="")
+                self._cur_state = wanted_state
+                return TransitionResult.ERROR
+
             self._cur_state = State.UNKNOWN
             try:
                 await concurrent.cancel()
