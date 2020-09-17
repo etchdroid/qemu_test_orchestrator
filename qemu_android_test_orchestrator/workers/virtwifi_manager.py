@@ -65,6 +65,14 @@ class VirtWifiManager(WorkerFSM):
 
         await wait_shell_available(self.shared_state)
 
+        serial.write(b'top\n')
+        await serial.drain()
+        await asyncio.sleep(5)
+        serial.write(b'q')
+        await serial.drain()
+
+        await wait_shell_available(self.shared_state)
+
         # Install app
         serial.write(b'pm install /data/local/tmp/app.apk\n')
         await serial.drain()
