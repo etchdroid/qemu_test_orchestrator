@@ -114,6 +114,9 @@ class QemuSystemManager(WorkerFSM):
 
         await wait_shell_available(self.shared_state)
 
+        await run_and_not_expect(b'ps -A | grep dex.oat\n', b'dex2oat', 40, self.shared_state)
+        print(Color.GREEN + "dex2oat terminated" + Color.RESET)
+
         # Wait for boot animation to be over
         if not await run_and_not_expect(b'ps -A | grep bootanim\n', b'bootanimation', 40, self.shared_state):
             print(Color.RED + "Warning: timeout waiting for boot animation to stop" + Color.RESET)
