@@ -1,3 +1,4 @@
+import asyncio
 import subprocess
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
@@ -20,18 +21,21 @@ class LogCollector(WorkerFSM):
             p = subprocess.Popen(command, stdout=f, stderr=subprocess.STDOUT)
             p.wait()
 
-    def collect_logs(self) -> None:
+    async def collect_logs(self) -> None:
         config = self.shared_state.config
         assert config
         if config['logcat_output']:
             self.run_and_log(config['logcat_output'], 'adb', 'logcat', '-d')
         if config['dmesg_output']:
             self.run_and_log(config['dmesg_output'], 'adb', 'shell', 'su', '-c', 'dmesg')
+        if config['bugreport_output']:
+            proc = await asyncio.create_subprocess_exec('adb', 'bugreport', config['bugreport_output'])
+            await proc.wait()
 
     # noinspection PyBroadException
     async def enter_state(self, state: State) -> TransitionResult:
         if state == State.LOGCAT:
-            self.collect_logs()
+            await self.collect_logs()
             return TransitionResult.DONE
         return TransitionResult.NOOP
 
