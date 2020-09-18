@@ -65,9 +65,10 @@ class VirtWifiManager(WorkerFSM):
 
         await wait_shell_available(self.shared_state)
 
+        print(Color.GREEN + "VM processes (top)" + Color.RESET)
         serial.write(b'top\n')
         await serial.drain()
-        await asyncio.sleep(5)
+        await asyncio.sleep(2.7)
         serial.write(b'q')
         await serial.drain()
 

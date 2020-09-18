@@ -74,11 +74,16 @@ async def run_and_expect(command: bytes, expect: bytes, within: int, shared_stat
 
 
 async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, shared_state: SynchronizedObject) -> bool:
+    not_occurrences = 0
     while True:
         shared_state.qemu_serial_writer.write(command)
         await shared_state.qemu_serial_writer.drain()
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
         if not_expect not in shared_state.qemu_serial_buffer[-within:]:
+            not_occurrences += 1
+        else:
+            not_occurrences = 0
+        if not_occurrences >= 5:
             return True
 
 

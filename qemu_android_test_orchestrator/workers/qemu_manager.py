@@ -1,8 +1,11 @@
 import asyncio
+import re
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
 from qemu_android_test_orchestrator.utils import kvm_available, Color, wait_shell_prompt, run_and_not_expect, \
-    wait_exists, run_and_expect, detect_package_manager, wait_shell_available
+    wait_exists, detect_package_manager, wait_shell_available
+
+ansi_escape = re.compile(br'(?:\x1B[@-Z\\-_]|[\x80-\x9A\x9C-\x9F]|(?:\x1B\[|\x9B)[0-?]*[ -/]*[@-~])')
 
 
 class QemuSystemManager(WorkerFSM):
@@ -18,7 +21,8 @@ class QemuSystemManager(WorkerFSM):
                 continue
             setattr(self.shared_state, bufname, getattr(self.shared_state, bufname) + line)
             if self.shared_state.config['qemu_debug']:
-                print(Color.YELLOW + f"{log_tag}:" + Color.RESET, line.decode(errors="replace"), end='')
+                print(Color.YELLOW + f"{log_tag}:" + Color.RESET, ansi_escape.sub(b'', line).decode(errors="replace"),
+                      end='')
 
     async def run_oneshot(self, command: str):
         writer = self.shared_state.qemu_serial_writer
@@ -96,6 +100,11 @@ class QemuSystemManager(WorkerFSM):
         found = await wait_shell_prompt(self.shared_state)
         if not found:
             print(Color.RED + "Warning: timeout while waiting for shell prompt" + Color.RESET)
+
+        # Set terminal size
+        await self.run_oneshot("stty cols 194")  # Travis "terminal" width
+        await self.run_oneshot("stty rows 80")  # So that enough top output shows
+        await wait_shell_prompt(self.shared_state)
 
         # Give it some other time to start zygote and all the bloat
         await asyncio.sleep(10 * self.shared_state.vm_timeout_multiplier)
