@@ -123,6 +123,13 @@ class QemuSystemManager(WorkerFSM):
 
         await wait_shell_available(self.shared_state)
 
+        print(Color.GREEN + "VM processes (top)" + Color.RESET)
+        self.shared_state.qemu_monitor_writer.write(b'top\n')
+        await self.shared_state.qemu_monitor_writer.drain()
+        await asyncio.sleep(2.7)
+        self.shared_state.qemu_monitor_writer.write(b'q')
+        await self.shared_state.qemu_monitor_writer.drain()
+
         await run_and_not_expect(b'ps -A | grep dex.oat\n', b'dex2oat', 40, self.shared_state)
         print(Color.GREEN + "dex2oat terminated" + Color.RESET)
 

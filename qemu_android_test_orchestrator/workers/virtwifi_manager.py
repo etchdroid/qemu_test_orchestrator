@@ -4,7 +4,7 @@ import os
 
 from qemu_android_test_orchestrator.fsm import WorkerFSM, State, TransitionResult
 from qemu_android_test_orchestrator.utils import wait_shell_prompt, keypress, run_and_expect, Color, \
-    detect_package_manager, wait_shell_available
+    detect_package_manager, wait_shell_available, run_and_not_expect
 
 
 class VirtWifiManager(WorkerFSM):
@@ -73,6 +73,8 @@ class VirtWifiManager(WorkerFSM):
         await serial.drain()
 
         await wait_shell_available(self.shared_state)
+
+        await run_and_not_expect(b'ps -A | grep dex.oat\n', b'dex2oat', 40, self.shared_state)
 
         # Install app
         serial.write(b'pm install /data/local/tmp/app.apk\n')
