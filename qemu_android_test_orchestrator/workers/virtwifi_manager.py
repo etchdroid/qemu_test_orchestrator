@@ -74,13 +74,13 @@ class VirtWifiManager(WorkerFSM):
 
         await wait_shell_available(self.shared_state)
 
-        await run_and_not_expect(b'ps -A | grep dex.oat\n', b'dex2oat', 40, self.shared_state)
+        # dex2oat likes to sneak in around here in API25 builds, let's wait for it more aggressively
+        await run_and_not_expect(b'ps -A | grep dex.oat\n', b'dex2oat', 40, self.shared_state, test_times=10)
 
         # Install app
         serial.write(b'pm install /data/local/tmp/app.apk\n')
         await serial.drain()
         await asyncio.sleep(0.5)
-        await wait_shell_prompt(self.shared_state)
 
         await wait_shell_available(self.shared_state)
 

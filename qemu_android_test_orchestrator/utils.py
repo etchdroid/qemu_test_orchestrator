@@ -73,7 +73,8 @@ async def run_and_expect(command: bytes, expect: bytes, within: int, shared_stat
             return True
 
 
-async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, shared_state: SynchronizedObject) -> bool:
+async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, shared_state: SynchronizedObject,
+                             test_times=5) -> bool:
     not_occurrences = 0
     while True:
         shared_state.qemu_serial_writer.write(command)
@@ -83,7 +84,7 @@ async def run_and_not_expect(command: bytes, not_expect: bytes, within: int, sha
             not_occurrences += 1
         else:
             not_occurrences = 0
-        if not_occurrences >= 5:
+        if not_occurrences >= test_times:
             return True
 
 
